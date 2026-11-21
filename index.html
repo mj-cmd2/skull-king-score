@@ -344,6 +344,16 @@ body{background:#0c3440;color:#183f45}
       return `<div class="stepper-mini" role="group" aria-label="${h(aria)}"><button class="count-btn" aria-label="Diminuer ${h(aria)} de ${step}" data-action="${actionMinus}" data-player="${h(pid)}" ${value<=min?'disabled':''}>−</button><span class="count-val">${value}</span><button class="count-btn" aria-label="Augmenter ${h(aria)} de ${step}" data-action="${actionPlus}" data-player="${h(pid)}" ${value>=max?'disabled':''}>+</button></div>`;
     }
 
+    // Build only the player controls, without reconstructing the score table.
+    function playerCards(r,play){
+      return game.players.map(p=>{
+        const bid=r.bids[p.id]||0,tricks=r.tricks[p.id]||0;
+        const n=play?tricks:bid;
+        return `<div class="pirate-card"><div class="pirate-head"><div class="pirate-name">${h(p.name)}</div>${(r.bonuses[p.id]||0)?`<div class="bonus-badge ${r.bonuses[p.id]>0?'positive':'negative'}">${fmt(r.bonuses[p.id]||0)}</div>`:''}</div>
+          <div class="pirate-card-main"><div class="card-values"><div class="card-count"><span>${play?'Plis :':'Pari :'}</span> <strong>${n}</strong></div>${play?`<div class="bet-remember">Pari : <strong>${bid}</strong></div>`:''}</div>
+          ${stepper(play?'trick-minus':'bid-minus',play?'trick-plus':'bid-plus',n,{pid:p.id,max:play?r.number:999,aria:(play?'Plis':'Pari')+' de '+p.name})}</div></div>`;
+      }).join('');
+    }
     function gamePage(){
       const r=activeRound(),past=r.number!==game.currentRound,play=r.phase!=='bids'&&!reviewingBids;
       const tricksDone=game.players.reduce((sum,p)=>sum+(r.tricks[p.id]||0),0);
@@ -359,17 +369,11 @@ body{background:#0c3440;color:#183f45}
       const canGoBack=reviewingBids||r.phase==='play'||Boolean(prev);
       const leftAction=(r.phase==='play'&&!reviewingBids)?'back-to-bids':'view-round';
       const leftRound=reviewingBids?(prev?.number||0):(prev?.number||0);
-      const cards=game.players.map(p=>{
-        const bid=r.bids[p.id]||0,tricks=r.tricks[p.id]||0;
-        const n=play?tricks:bid;
-        return `<div class="pirate-card"><div class="pirate-head"><div class="pirate-name">${h(p.name)}</div>${(r.bonuses[p.id]||0)?`<div class="bonus-badge ${r.bonuses[p.id]>0?'positive':'negative'}">${fmt(r.bonuses[p.id]||0)}</div>`:''}</div>
-          <div class="pirate-card-main"><div class="card-values"><div class="card-count"><span>${play?'Plis :':'Pari :'}</span> <strong>${n}</strong></div>${play?`<div class="bet-remember">Pari : <strong>${bid}</strong></div>`:''}</div>
-          ${stepper(play?'trick-minus':'bid-minus',play?'trick-plus':'bid-plus',n,{pid:p.id,max:play?r.number:999,aria:(play?'Plis':'Pari')+' de '+p.name})}</div></div>`;
-      }).join('');
+      const cards=playerCards(r,play);
       const rounds=game.rounds.filter(x=>x.number<=r.number);
       const table=`<div class="scores-scroll"><table class="score-grid"><thead><tr><th class="round-col">Tour</th>${rankedPlayers.map(p=>`<th title="${h(p.name)}">${h(p.name)}</th>`).join('')}</tr><tr class="totals"><th>Total</th>${rankedPlayers.map(p=>`<th class="${totals[p.id]===maxScore?'leader':''}">${totals[p.id]}</th>`).join('')}</tr></thead><tbody>${rounds.map(x=>`<tr class="${x.number===r.number?'current-round':''}"><th>${x.number}</th>${rankedPlayers.map(p=>`<td>${x.phase==='complete'?roundScore(x,p.id).total:'-'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
       return `${topbar(`<button class="top-action" data-action="open-finish">Terminer</button><button class="top-action settings-action" data-action="open-settings" aria-label="Paramètres des bonus" title="Paramètres">⚙</button>`)}
-       <main class="view game-purple" style="--nplayers:${game.players.length}"><section class="action-board" data-player-count="${game.players.length}"><div class="turn-title"><button class="turn-nav" aria-label="Manche précédente" data-action="${leftAction}" data-round="${leftRound}" ${!canGoBack?'disabled':''}>‹</button><div><b>Tour ${r.number}</b><span> — ${phaseLabel}</span></div><button class="turn-nav" aria-label="Manche suivante" data-action="${reviewingBids?'back-to-play':'view-round'}" data-round="${next?.number||0}" ${!next&&!reviewingBids?'disabled':''}>›</button></div>
+       <main class="view game-purple" style="--nplayers:${game.players.length}"><section class="action-board" data-player-count="${game.players.length}"><div class="turn-title"><button class="turn-nav" aria-label="Manche précédente" data-action="${leftAction}" data-round="${leftRound}" ${!canGoBack?'disabled':''}>‹</button><div><b>Tour ${r.number}</b><span data-phase-label> — ${phaseLabel}</span></div><button class="turn-nav" aria-label="Manche suivante" data-action="${reviewingBids?'back-to-play':'view-round'}" data-round="${next?.number||0}" ${!next&&!reviewingBids?'disabled':''}>›</button></div>
        <div class="pirate-cards">${cards}</div>
        <div class="board-controls">${play?`<div class="kraken-small"><span>🐙 Kraken</span>${stepper('kraken-minus','kraken-plus',r.kraken,{max:99,aria:'Kraken'})}</div><div class="board-tools"><button class="board-tool" data-action="open-harry-list">Harry</button><button class="board-tool" data-action="open-bonus-list">💰 Bonus</button></div>`:'<span class="bet-note">Choisissez les paris de chaque joueur</span>'}
        </div><div class="board-actions">${past?`<button class="gold-action" data-action="current">Manche ${game.currentRound} ↗</button>`:!play?`<button class="gold-action" data-action="save-bids">${reviewingBids?'Enregistrer les paris':'Valider les paris'}</button>`:r.phase==='play'?`<button class="gold-action" data-action="complete-round" ${!canComplete?'disabled':''}>Valider la manche</button>`:`<button class="gold-action" data-action="current">Manche en cours</button>`}</div></section>
@@ -418,6 +422,52 @@ body{background:#0c3440;color:#183f45}
       if(!scrollTop){const el=$app.querySelector('.player-scroll,.setup-scroll,.final-list');if(el)el.scrollTop=previousScroll;}
     }
 
+    // Counter changes must not redraw the full app or the score table.
+    function refreshCounterControls(action){
+      const r=activeRound();
+      if(!r)return;
+      const play=r.phase!=='bids'&&!reviewingBids;
+      const isKraken=action.startsWith('kraken-');
+      const isBonus=action.startsWith('bonus-');
+      const isHarry=action.startsWith('harry-');
+      if(!isKraken&&!isBonus){
+        const cards=$app.querySelector('.pirate-cards');
+        if(cards)cards.innerHTML=playerCards(r,play);
+      }
+      if(isBonus){
+        // Repaint the bonus chip on the affected player without moving the table.
+        const cards=$app.querySelector('.pirate-cards');
+        if(cards)cards.innerHTML=playerCards(r,play);
+      }
+      if(isKraken){
+        const button=$app.querySelector('[data-action="kraken-plus"]');
+        const ctr=button?.closest('.stepper-mini');
+        if(ctr)ctr.outerHTML=stepper('kraken-minus','kraken-plus',r.kraken,{max:99,aria:'Kraken'});
+      }
+      if(action.startsWith('bid-')||isHarry){
+        const label=$app.querySelector('[data-phase-label]');
+        if(label){
+          const total=game.players.reduce((sum,p)=>sum+(r.bids[p.id]||0),0);
+          label.textContent=' — Paris '+total+' sur '+r.number;
+        }
+      }
+      if(play){
+        const validation=$app.querySelector('[data-action="complete-round"]');
+        if(validation){
+          const total=game.players.reduce((sum,p)=>sum+(r.tricks[p.id]||0),0)+r.kraken;
+          validation.disabled=total!==r.number;
+        }
+      }
+      if(modal&&(isBonus||isHarry)){
+        const old=$app.querySelector('.modal-backdrop');
+        if(old){
+          const scroll=old.querySelector('.sheet')?.scrollTop||0;
+          old.outerHTML=modalHTML();
+          const sheet=$app.querySelector('.modal-backdrop .sheet');
+          if(sheet)sheet.scrollTop=scroll;
+        }
+      }
+    }
     function modifyCounter(action,pid){
       const r=activeRound();if(!r)return;
       const val=action.endsWith('plus')?1:-1;
@@ -438,7 +488,8 @@ body{background:#0c3440;color:#183f45}
         r.bids[pid]=Math.max(Math.max(0,initial-1),Math.min(initial+1,r.bids[pid]+val));
         r.harryDelta[pid]=r.bids[pid]-initial;
       }
-      save();render();
+      refreshCounterControls(action);
+      save();
     }
     $app.addEventListener('input',(e)=>{
       if(e.target.matches('[data-name-index]')){
