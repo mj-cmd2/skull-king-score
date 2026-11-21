@@ -212,6 +212,56 @@ body{background:#0c3440;color:#183f45}
 @media(max-height:660px){.topbar{height:41px}.action-board{margin:4px 6px;padding:4px 6px 7px}.turn-title{min-height:24px}.pirate-cards{gap:4px;padding:1px}.pirate-card{padding:3px 5px}.pirate-name{margin-bottom:1px}.pirate-card-main{min-height:44px;padding:2px 4px}.pirate-card .count-btn{width:25px;height:21px;font-size:15px}.card-count strong{font-size:18px}.board-controls{padding:4px 1px 0}.board-actions{padding-top:7px}.gold-action{min-height:30px}.score-board{padding-top:2px}}
 @media(min-width:600px){body{background:#cbded7}.shell{height:min(860px,96dvh)}}
 
+
+/* Grille de saisie adaptée au nombre de joueurs :
+   2–6 joueurs : 2 colonnes ; 7–10 joueurs : 3 colonnes. */
+.action-board[data-player-count="2"] .pirate-cards,
+.action-board[data-player-count="3"] .pirate-cards,
+.action-board[data-player-count="4"] .pirate-cards,
+.action-board[data-player-count="5"] .pirate-cards,
+.action-board[data-player-count="6"] .pirate-cards{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+.action-board[data-player-count="7"] .pirate-cards,
+.action-board[data-player-count="8"] .pirate-cards,
+.action-board[data-player-count="9"] .pirate-cards,
+.action-board[data-player-count="10"] .pirate-cards{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:4px;
+}
+.action-board[data-player-count="7"] .pirate-card,
+.action-board[data-player-count="8"] .pirate-card,
+.action-board[data-player-count="9"] .pirate-card,
+.action-board[data-player-count="10"] .pirate-card{
+  min-width:0;
+  padding:3px 4px;
+}
+.action-board[data-player-count="7"] .pirate-card-main,
+.action-board[data-player-count="8"] .pirate-card-main,
+.action-board[data-player-count="9"] .pirate-card-main,
+.action-board[data-player-count="10"] .pirate-card-main{
+  gap:2px;
+  padding:2px;
+}
+.action-board[data-player-count="7"] .pirate-card .card-count span,
+.action-board[data-player-count="8"] .pirate-card .card-count span,
+.action-board[data-player-count="9"] .pirate-card .card-count span,
+.action-board[data-player-count="10"] .pirate-card .card-count span{
+  font-size:10px;
+}
+.action-board[data-player-count="7"] .pirate-card .bet-remember,
+.action-board[data-player-count="8"] .pirate-card .bet-remember,
+.action-board[data-player-count="9"] .pirate-card .bet-remember,
+.action-board[data-player-count="10"] .pirate-card .bet-remember{
+  font-size:9px;
+}
+.action-board[data-player-count="7"] .pirate-card .stepper-mini,
+.action-board[data-player-count="8"] .pirate-card .stepper-mini,
+.action-board[data-player-count="9"] .pirate-card .stepper-mini,
+.action-board[data-player-count="10"] .pirate-card .stepper-mini{
+  flex-shrink:0;
+}
+
   </style>
 </head>
 <body>
