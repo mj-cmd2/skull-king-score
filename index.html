@@ -212,6 +212,13 @@ body{background:#0c3440;color:#183f45}
 @media(max-height:660px){.topbar{height:41px}.action-board{margin:4px 6px;padding:4px 6px 7px}.turn-title{min-height:24px}.pirate-cards{gap:4px;padding:1px}.pirate-card{padding:3px 5px}.pirate-name{margin-bottom:1px}.pirate-card-main{min-height:44px;padding:2px 4px}.pirate-card .count-btn{width:25px;height:21px;font-size:15px}.card-count strong{font-size:18px}.board-controls{padding:4px 1px 0}.board-actions{padding-top:7px}.gold-action{min-height:30px}.score-board{padding-top:2px}}
 @media(min-width:600px){body{background:#cbded7}.shell{height:min(860px,96dvh)}}
 
+
+/* Cadrage mobile cohérent des fenêtres, sans dépasser le plateau de 375 px. */
+.modal-backdrop{left:50%;right:auto;width:min(100vw,375px);transform:translateX(-50%)}
+.modal{width:100%;max-width:349px}
+.sheet{width:100%;max-width:375px}
+/* Le logo corail renvoie à l’accueil sur tous les écrans. */
+.brand-home{flex:0 0 28px;padding:0;cursor:pointer;appearance:none}
   </style>
 </head>
 <body>
@@ -272,7 +279,7 @@ body{background:#0c3440;color:#183f45}
       screen='game';displayRound=1;reviewingBids=false;save();render(true);
     }
     function topbar(action=''){
-      return `<header class="topbar"><div class="brand"><div class="brand-icon" aria-hidden="true">☠</div><div><div class="brand-name">Skull King</div><div class="brand-sub">À l'abordage !</div></div></div>${action}</header>`;
+      return `<header class="topbar"><div class="brand"><button type="button" class="brand-icon brand-home" data-action="home" aria-label="Retour à l’accueil" title="Accueil">☠</button><div><div class="brand-name">Skull King</div><div class="brand-sub">À l'abordage !</div></div></div>${action}</header>`;
     }
 
     function home(){
@@ -281,7 +288,7 @@ body{background:#0c3440;color:#183f45}
     }
 
     function setup(){
-      return `${topbar(`<button class="top-action" data-action="home">Accueil</button>`)}<main class="view"><div class="setup-head"><span class="eyebrow">Nouvelle partie</span><h1>Votre équipage</h1><p><span class="setup-count">Entre 2 et 10 joueurs</span> · <span class="setup-count">${draftNames.length}/10 joueurs ajoutés</span></p></div><div class="setup-scroll"><div>${draftNames.map((name,i)=>`<div class="field-row"><span class="field-index">${i+1}.</span><input class="field-input" data-name-index="${i}" aria-label="Prénom du joueur ${i+1}" placeholder="Nom du pirate" maxlength="26" value="${h(name)}"><button class="remove-btn" aria-label="Supprimer joueur ${i+1}" data-action="remove-player" data-index="${i}" ${draftNames.length<=2?'disabled':''}>×</button></div>`).join('')}</div><button class="btn btn-soft add-player" data-action="add-player" ${draftNames.length===10?'disabled':''}>+ Ajouter un joueur</button></div><footer class="footer-dock"><button class="btn btn-primary" data-action="start">Commencer la partie →</button></footer></main>`;
+      return `${topbar()}<main class="view"><div class="setup-head"><span class="eyebrow">Nouvelle partie</span><h1>Votre équipage</h1><p><span class="setup-count">Entre 2 et 10 joueurs</span> · <span class="setup-count">${draftNames.length}/10 joueurs ajoutés</span></p></div><div class="setup-scroll"><div>${draftNames.map((name,i)=>`<div class="field-row"><span class="field-index">${i+1}.</span><input class="field-input" data-name-index="${i}" aria-label="Prénom du joueur ${i+1}" placeholder="Nom du pirate" maxlength="26" value="${h(name)}"><button class="remove-btn" aria-label="Supprimer joueur ${i+1}" data-action="remove-player" data-index="${i}" ${draftNames.length<=2?'disabled':''}>×</button></div>`).join('')}</div><button class="btn btn-soft add-player" data-action="add-player" ${draftNames.length===10?'disabled':''}>+ Ajouter un joueur</button></div><footer class="footer-dock"><button class="btn btn-primary" data-action="start">Commencer la partie →</button></footer></main>`;
     }
 
     function stepper(actionMinus,actionPlus,value,options={}){
@@ -401,7 +408,7 @@ body{background:#0c3440;color:#183f45}
       if(a==='home'){screen='home';modal=null;render(true);return;}
       if(a==='setup'){
         if(game&&!game.finished&&screen!=='setup') {modal={type:'replace',next:'setup'};render();return;}
-        draftNames=game?.finished?game.players.map(p=>p.name):['',''];screen='setup';modal=null;render(true);return;
+        draftNames=['',''];screen='setup';modal=null;render(true);return;
       }
 
       if(a==='resume'){screen='game';displayRound=game.currentRound;reviewingBids=false;render(true);return;}
