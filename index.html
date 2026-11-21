@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=375, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#102438">
+  <meta name="description" content="Prototype mobile de compteur de points pour Skull King, jouable sur un seul téléphone.">
+  <title>À l'abordage ! — Compteur de points</title>
+  <style>
+
+:root{color-scheme:light;--navy:#102737;--navy2:#173b49;--paper:#fbf7ed;--white:#fffdf8;--ink:#182d37;--muted:#66757b;--gold:#dca954;--teal:#14796d;--line:#e7e2d6;--red:#ad514b;--good:#16766c}
+*{box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{margin:0;background:#102737;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;color:var(--ink);font-size:14px;-webkit-tap-highlight-color:transparent}
+button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.35;cursor:default}button:focus-visible,input:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.shell{width:min(100%,520px);height:100dvh;max-height:100dvh;margin:auto;display:flex;flex-direction:column;background:var(--paper);overflow:hidden;box-shadow:0 0 45px #0003}
+.topbar{height:50px;flex-shrink:0;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 13px;gap:12px}
+.brand{display:flex;align-items:center;gap:8px;min-width:0}.brand-icon{width:28px;height:28px;display:grid;place-items:center;background:#314a55;border:1px solid #977d4d;border-radius:8px;color:#ffe1a0;font-size:17px}.brand-name{font-family:Georgia,serif;font-weight:800;letter-spacing:.2px;font-size:17px;line-height:1}.brand-sub{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#c2cbd0;margin-top:3px}.top-action{height:30px;border:1px solid #50616b;border-radius:7px;background:#233f4d;color:#f8e5bb;padding:0 9px;font-size:11px;font-weight:800;white-space:nowrap}
+.view{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.pad{padding:15px 14px}.home-content{flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px;padding:18px}.home-panel{background:var(--navy);color:white;padding:26px 20px;border-radius:17px;position:relative;overflow:hidden}.home-panel:after{content:'☠';position:absolute;right:-16px;bottom:-57px;font-size:160px;opacity:.06;pointer-events:none}.home-panel h1{font:800 33px/1.02 Georgia,serif;margin:8px 0}.home-panel p{font-size:13px;color:#cbd6dc;line-height:1.5;margin:0 0 22px}.eyebrow{color:var(--teal);font-size:11px;font-weight:850;letter-spacing:1px;text-transform:uppercase}.home-panel .eyebrow{color:#e5bd76}.btn{min-height:44px;border:0;border-radius:10px;padding:9px 12px;font-size:13px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:7px}.btn-primary{background:var(--gold);color:var(--navy)}.btn-dark{background:var(--navy);color:#fff}.btn-soft{background:var(--white);color:var(--navy);border:1px solid var(--line)}.btn-danger{background:var(--red);color:#fff}.btn-full{width:100%}.stack{display:grid;gap:9px}.note{text-align:center;color:var(--muted);font-size:11px;line-height:1.4}.fine{font-size:11px;color:var(--muted)}
+.setup-head{flex-shrink:0;padding:14px 14px 11px}.setup-head h1{font:800 24px Georgia,serif;margin:6px 0}.setup-head p{font-size:12px;color:var(--muted);margin:0}.setup-scroll{flex:1;min-height:0;overflow-y:auto;padding:0 14px;overscroll-behavior:contain}.field-row{display:flex;align-items:center;gap:7px;margin:5px 0}.field-index{width:20px;color:#a08966;text-align:right;font-weight:900}.field-input{min-width:0;flex:1;height:38px;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:white;font-weight:700;color:var(--ink)}.remove-btn{border:1px solid var(--line);background:white;color:var(--red);height:35px;width:34px;border-radius:8px;font-size:19px}.add-player{margin:9px 0 14px;width:100%}
+.game-head{flex:0 0 auto;padding:10px 13px 8px;display:flex;align-items:center;justify-content:space-between;gap:8px}.game-head h1{font:800 23px Georgia,serif;margin:0;line-height:1}.game-head h1 small{font:700 12px system-ui;color:#8c9597}.game-head .phase{font-size:10px;color:var(--teal);font-weight:800;margin-top:4px}.head-nav{display:flex;align-items:center;gap:5px}.round-btn{width:30px;height:30px;border:1px solid var(--line);border-radius:8px;background:var(--white);color:var(--navy);font-weight:850;font-size:17px}.round-mini{font-size:10px;white-space:nowrap;background:#eee6d6;color:#635641;padding:6px 8px;border-radius:7px;font-weight:900}
+.grid-legend{flex-shrink:0;padding:7px 13px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#f0ebdf;font-size:10px;color:#6c757a;font-weight:850;text-transform:uppercase;letter-spacing:.45px}.grid-layout{display:grid;align-items:center;column-gap:4px;grid-template-columns:minmax(0,1fr) 40px 95px 58px}.grid-layout.bids{grid-template-columns:minmax(0,1fr) 112px 58px}.grid-legend span:last-child{text-align:right}
+.player-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#d6d2c6 transparent;padding:0 13px;background:var(--white)}.player-row{min-height:49px;border-bottom:1px solid #ebe8df;position:relative}.player-row:last-child{border-bottom:0}.player-info{min-width:0;display:flex;align-items:center;gap:5px}.rank-mini{width:15px;text-align:center;color:#978c78;font-size:10px;font-weight:900;flex-shrink:0}.player-detail{min-width:0;display:flex;flex-direction:column;justify-content:center;gap:1px;align-items:flex-start}.player-name{font-size:13px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.bonus-link{border:0;background:transparent;padding:0;font-weight:750;color:#32796f;font-size:10px;line-height:16px;white-space:nowrap}.bonus-link.hasbonus{color:#9d6c2b}.bid-static{width:36px;height:28px;border:1px solid #e5d8bf;border-radius:7px;background:#f7f1e4;font-weight:900;color:#6a5435;font-size:14px}.player-total{text-align:right;font-weight:900;font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}.player-total.negative{color:var(--red)}.player-total.positive{color:var(--good)}.score-caption{text-align:right;font-size:9px;font-weight:550;color:#82909a;line-height:1}.stepper-mini{display:flex;align-items:center;justify-content:space-between;gap:1px;min-width:0}.count-btn{flex-shrink:0;width:28px;height:30px;border:1px solid #e4dbc9;background:#f5f0e6;border-radius:7px;color:var(--navy);font-size:21px;line-height:1;font-weight:550;display:grid;place-items:center;padding:0}.count-val{min-width:25px;text-align:center;font-weight:900;font-size:15px;font-variant-numeric:tabular-nums}.grid-layout.bids .stepper-mini{max-width:112px}.grid-layout.bids .count-btn{width:31px;height:31px}
+.utility-strip{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#eee7d8;padding:7px 13px;border-top:1px solid #e1d9c8}.kraken-label{font-size:12px;font-weight:850;white-space:nowrap}.kraken-ctr{display:flex;align-items:center;gap:7px}.utility-strip .count-btn{width:29px;height:29px;background:var(--white)}.utility-strip .count-val{min-width:14px}.rules-btn{border:1px solid #d6cbb8;background:var(--white);color:var(--navy);border-radius:7px;min-height:29px;padding:5px 9px;font-weight:800;font-size:11px;white-space:nowrap}.footer-dock{flex:0 0 auto;padding:9px 13px max(10px,env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--paper);display:flex;gap:9px;align-items:center}.footer-dock .btn{width:100%;height:43px;min-height:43px}.footer-tip{font-size:10px;color:var(--muted);text-align:center;padding:6px 10px;background:#f4eee1}
+.final-title{text-align:center;padding:19px 14px 13px;flex-shrink:0;background:var(--navy);color:white}.final-title h1{font:800 24px/1.12 Georgia,serif;margin:6px 0}.final-title p{margin:2px;font-size:12px;color:#e7d6b5}.final-icon{font-size:31px}.final-list{flex:1;min-height:0;overflow-y:auto;padding:8px 14px}.final-row{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:9px;align-items:center;min-height:42px;border-bottom:1px solid var(--line);font-size:13px}.final-row strong{font-size:14px}.final-row .position{font-size:17px;font-weight:900;color:#a98854}.final-actions{flex-shrink:0;padding:10px 13px max(10px,env(safe-area-inset-bottom));display:grid;gap:7px;border-top:1px solid var(--line)}.final-actions .btn{min-height:41px}.final-actions .btn-primary{box-shadow:0 3px 0 #cc8251}
+.modal-backdrop{position:fixed;inset:0;z-index:20;background:#081c2caa;display:flex;align-items:center;justify-content:center;padding:13px}.modal{width:min(100%,410px);max-height:calc(100dvh - 30px);overflow-y:auto;background:var(--paper);border-radius:16px;padding:19px;box-shadow:0 22px 50px #0005}.modal h2{font:800 24px Georgia,serif;margin:5px 0 8px}.modal p{color:var(--muted);font-size:12px;line-height:1.5;margin:5px 0 12px}.modal-buttons{display:flex;gap:7px;margin-top:14px}.modal-buttons .btn{flex:1}.notice{padding:10px;margin:9px 0;border:1px solid #e1caa0;border-radius:8px;background:#fff2d9;color:#7a5724;font-size:12px}.sheet-wrap{align-items:flex-end;padding:0}.sheet{background:var(--paper);width:min(100%,520px);max-height:calc(100dvh - 35px);overflow-y:auto;border-radius:18px 18px 0 0;padding:16px 15px max(18px,env(safe-area-inset-bottom));box-shadow:0 -18px 55px #0018}.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.sheet-head h2{margin:0;font:800 21px Georgia,serif}.close-x{border:1px solid var(--line);background:white;color:var(--ink);border-radius:7px;height:30px;width:30px;font-size:20px}.sheet p{color:var(--muted);font-size:12px;margin:7px 0 12px}.bonus-controls{display:flex;justify-content:center;align-items:center;gap:16px;margin:12px 0}.bonus-controls .count-btn{width:58px;height:44px;font-size:17px;font-weight:850;background:var(--navy);color:#fff;border-color:var(--navy)}.bonus-controls .count-val{font-size:24px;min-width:80px}.checkline{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:9px;padding:10px;background:white;font-size:12px;line-height:1.3}.checkline input{accent-color:var(--teal);width:18px;height:18px;flex-shrink:0}.rules-list{border-top:0;padding-top:0;margin-top:14px}.rules-list h3{font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin:0 0 8px;color:var(--navy)}.rules-list ul{margin:0;padding-left:17px;font-size:12px;line-height:1.65}.rules-list li{padding-bottom:3px}.sheet-footer{margin-top:16px}.sheet-footer .btn{width:100%}.sheet-footer .btn-dark,.modal-buttons .btn-danger,.modal-buttons .btn-dark{background:#ffb66f;color:#203f43;border:0}.modal-buttons .btn-soft{background:#ffffff;border:1px solid #d9cfbb;color:#21434a}.close-x{border-color:#d8ccb5;background:#fffaf0;color:#21434a}.notice{border-color:#f0c27f;background:#fff1d9;color:#7b5720}
+.harry-summary{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:12px 0}.harry-summary div{background:white;padding:9px;border:1px solid var(--line);border-radius:9px}.harry-summary span{display:block;color:var(--muted);font-size:11px}.harry-summary strong{font-size:22px}.harry-control{display:flex;justify-content:center;align-items:center;gap:16px;margin:13px 0}.harry-control .count-btn{width:41px;height:39px}.toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--navy);color:white;font-size:12px;font-weight:800;padding:10px 15px;border-radius:9px;z-index:40;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+@media(max-height:730px){.topbar{height:45px}.game-head{padding-top:6px;padding-bottom:5px}.game-head h1{font-size:21px}.player-row{min-height:45px}.utility-strip{padding-top:5px;padding-bottom:5px}.footer-dock{padding-top:6px;padding-bottom:max(6px,env(safe-area-inset-bottom))}.footer-dock .btn{min-height:39px;height:39px}.final-row{min-height:37px}}
+@media(max-width:345px){.grid-layout{grid-template-columns:minmax(0,1fr) 34px 87px 53px}.grid-layout.bids{grid-template-columns:minmax(0,1fr) 100px 53px}.count-btn{width:26px;height:28px}.player-name{font-size:12px}.topbar{padding:0 9px}.player-scroll{padding:0 9px}.grid-legend{padding:7px 9px}.utility-strip{padding-left:9px;padding-right:9px}.footer-dock{padding-left:9px;padding-right:9px}}
+@media(min-width:600px){body{display:flex;justify-content:center;align-items:center;background:#cdd4d1}.shell{height:min(860px,96dvh);max-height:min(860px,96dvh);border-radius:18px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* Mode tableau inspiré du modèle partagé : plateau violet + scores sous les joueurs */
+:root{--purple:#6c66b6;--purple-deep:#522b95;--sun:#ffd34d}
+body{background:#50408d}
+.shell{width:375px;max-width:375px;background:linear-gradient(180deg,#706abc 0%,#533096 100%);color:white}
+.topbar{height:43px;background:#6862b1;border-bottom:1px solid #ffffff22}
+.top-action{background:transparent;color:#ffe8ad;border-color:#ffffff55;min-height:32px;padding:0 10px}
+.game-purple{background:linear-gradient(180deg,#6e6bbb,#58349e);color:#fff;gap:0}
+.action-board{flex:0 0 auto;border:1px solid #e1dafa;border-radius:10px;margin:7px 9px 3px;padding:6px 7px 8px;display:flex;flex-direction:column;min-height:0;max-height:49%;}
+.turn-title{display:flex;align-items:center;justify-content:space-between;font-size:17px;text-align:center;min-height:30px;gap:5px}
+.turn-title span{font-size:12px;opacity:.89}.turn-title b{font-size:19px}.turn-nav{width:26px;height:27px;border:0;background:transparent;color:var(--sun);font-size:24px;line-height:1}
+.pirate-cards{min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:4px 3px;overscroll-behavior:contain;align-content:start}
+.pirate-card{border:1px solid #ece8ff;border-radius:7px;padding:5px 6px 4px;min-width:0;background:#ffffff08}
+.pirate-name{font-weight:750;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;margin-bottom:4px}
+.pirate-card-main{display:flex;align-items:center;gap:5px;justify-content:space-between;background:#ffffff0a;border:1px solid #ffffff22;border-radius:5px;padding:3px 4px;min-height:38px}
+.card-count-label{font-size:10px;opacity:.85}.card-count strong{font-size:21px;font-weight:750;line-height:1.1}
+.pirate-card .stepper-mini{gap:4px;flex-shrink:0}
+.pirate-card .count-btn{background:#ffffff09;color:#ffe057;border:1px solid #ffda57;border-radius:5px;width:25px;height:29px;font-size:18px;font-weight:800}
+.pirate-card .count-val{display:none}
+.pirate-card .count-btn:disabled{opacity:.3}
+.bet-remember{background:#ffffff17;border-radius:5px;padding:3px 5px;line-height:1.1;display:flex;align-items:center;gap:4px;font-size:11px;flex:0 0 auto}.bet-remember strong{font-size:16px;color:#ffe36b}.bet-remember span{font-size:11px;color:#ffe36b}
+.card-bonus{margin-top:4px;width:100%;border:0;border-top:1px solid #ffffff24;background:none;text-align:center;color:#ffe07b;font-size:11px;padding:4px 0 0}.card-bonus span{font-size:14px}
+.board-controls{min-height:34px;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:3px 4px}.bet-note{font-size:10px;opacity:.85}
+.kraken-small{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700}.kraken-small .stepper-mini{gap:6px}.kraken-small .count-btn{width:26px;height:27px;background:#ffffff18;border:1px solid #eae7ff;color:#fff;border-radius:5px;font-size:18px}.kraken-small .count-val{font-size:13px;min-width:14px}
+.rules-ghost{border:1px solid #ffffff8a;border-radius:5px;background:transparent;color:white;font-size:11px;padding:5px 8px}
+.board-actions{display:flex;justify-content:center;padding:2px 0 0}.gold-action:disabled{opacity:.42;filter:grayscale(.6);cursor:not-allowed}.tricks-progress{text-align:center;font-size:10px;padding:1px 0 3px;color:#ffe8ac}.tricks-progress.ready{color:#c9ffe4}.gold-action{border:0;border-radius:6px;background:var(--sun);color:#24183f;font-weight:850;font-size:13px;min-height:34px;padding:5px 25px}
+.score-board{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 8px 8px}.score-header{display:flex;justify-content:space-between;align-items:center;padding:8px 5px 5px;gap:4px}.score-header b{font-size:13px}.score-header small{font-size:9px;opacity:.75;text-align:right}
+.scores-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
+.score-grid{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;min-width:calc(46px + 88px * var(--nplayers, 4));font-variant-numeric:tabular-nums;text-align:center}
+.score-grid th,.score-grid td{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:7px 4px;font-size:13px;font-weight:450;min-width:85px}
+.score-grid thead th{position:sticky;top:0;z-index:2;background:#6550ab;border-bottom:1px solid #f7cf49;font-size:12px;font-weight:750}
+.score-grid thead .totals th{top:32px;background:#6244a8;border-bottom:2px solid #f7cf49;color:#f8d35e;font-size:16px}
+.score-grid th.round-col,.score-grid tbody th,.score-grid thead .totals th:first-child{min-width:43px;width:43px;position:sticky;left:0;z-index:3;background:#634dab}
+.score-grid thead .totals th:first-child{z-index:4;font-size:11px}
+.score-grid tbody th{font-weight:750;font-size:13px;background:#583a9d}
+.score-grid tbody td{border-bottom:1px solid #ffffff10}
+.score-grid tbody tr.current-round td,.score-grid tbody tr.current-round th{color:#ffe079;background:#7451b3}
+.score-grid .leader{color:#ffe079}
+@media(min-width:500px){.pirate-cards{grid-template-columns:repeat(3,minmax(0,1fr))}.action-board{max-height:53%}}
+@media(max-height:650px){.topbar{height:35px}.action-board{max-height:53%;margin-top:4px;padding:3px 6px}.pirate-card{padding:3px 5px}.pirate-name{margin-bottom:2px}.pirate-card-main{min-height:32px;padding:1px 3px}.card-count strong{font-size:17px}.turn-title{min-height:25px}.board-controls{min-height:28px}.gold-action{min-height:29px}}
+
+
+/* V3: compact cards and global editing panels */
+.pirate-card{padding:5px 6px 6px}
+.pirate-card-main{min-height:69px;padding:5px 7px;align-items:stretch;gap:5px}
+.card-values{display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:0;flex:1}
+.card-count-label{font-size:11px;color:#eee8ff}
+.card-count strong{font-size:24px;color:#fff}
+.pirate-card .stepper-mini{display:flex;flex-direction:column;justify-content:center;gap:3px}
+.pirate-card .count-btn{width:31px;height:29px}
+.pirate-card .count-val{display:none}
+.pirate-card .bet-remember{border:0;background:transparent;padding:0;color:#ffe573;display:block;font-size:10px}
+.bet-remember strong{font-size:12px}
+.board-tools{display:flex;gap:6px;align-items:center}
+.board-tool{border:1px solid #ffdf73;background:#ffffff12;color:#ffe573;padding:6px 9px;border-radius:5px;font-size:12px;font-weight:800;min-height:30px}
+.people-modal{display:flex;flex-direction:column;gap:0;margin-top:10px}
+.people-modal-row{display:grid;grid-template-columns:minmax(0,1fr) 42px 41px 41px;gap:8px;align-items:center;padding:10px 1px;border-bottom:1px solid var(--line)}
+.people-modal-name{font-size:13px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.people-modal-value{text-align:center;font-size:15px;font-weight:900;font-variant-numeric:tabular-nums;color:#d85d48}
+.people-modal-row .count-btn{width:40px;height:36px;background:white;font-size:18px;font-weight:850}
+.people-modal-row .count-btn:disabled{opacity:.3}
+.people-modal-check{grid-column:1/-1;display:flex;gap:7px;align-items:center;font-size:11px;color:var(--muted)}
+.people-modal-check input{accent-color:var(--teal)}
+.modal-hint{font-size:11px;color:var(--muted)}
+
+/* V4: lean scores, legible modal, settings */
+.card-values{gap:3px}
+.card-count{display:flex;align-items:baseline;gap:4px;white-space:nowrap;color:#fff}
+.card-count span{font-size:13px;font-weight:650;color:#fff}
+.card-count strong{font-size:20px;color:#fff}
+.pirate-card .bet-remember{color:#fff;font-size:12px;font-weight:500}
+.pirate-card .bet-remember strong{color:#fff;font-size:12px;font-weight:850}
+.pirate-card-main{min-height:62px}
+.action-board{max-height:48%}
+.score-board{padding-top:6px}
+.topbar{gap:10px}
+.topbar .brand{margin-right:auto}
+.settings-action{font-size:20px;padding:0 7px;min-width:32px}
+.sheet,.modal{color:#182d37;background:#fbf7ed}
+.sheet h2,.modal h2{color:#182d37}
+.sheet .people-modal-name,.sheet .people-modal-value,.sheet .rules-list,.sheet .rules-list li,.sheet .rules-list h3{color:#182d37}
+.sheet .people-modal-row{border-bottom-color:#d5cebe}
+.sheet .people-modal-row .count-btn{background:#182d37;color:#fff;border:1px solid #182d37}
+.sheet .people-modal-value{font-size:15px;font-weight:900}
+.sheet .close-x{color:#182d37}
+.settings-people{display:grid;gap:6px;margin-top:10px}
+.settings-player{display:flex;align-items:center;justify-content:space-between;gap:12px;background:white;border:1px solid #e7e2d6;border-radius:8px;padding:10px;color:#182d37;font-size:13px;font-weight:800}
+.settings-switch{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:500;color:#354d55;max-width:56%}
+.settings-switch input{width:19px;height:19px;flex-shrink:0;accent-color:#14796d}
+@media(max-height:650px){.pirate-card-main{min-height:53px}.action-board{max-height:51%}}
+
+/* V5 : commandes empilées + au-dessus de −, alignement centré et règle globale */
+.pirate-card-main{align-items:center;justify-content:center;gap:9px}
+.pirate-card .card-values{flex:0 1 auto;align-items:center;text-align:center;justify-content:center;min-width:0}
+.pirate-card .card-count{justify-content:center}
+.pirate-card .bet-remember{text-align:center}
+.pirate-card .stepper-mini{flex-direction:column-reverse;align-items:center;justify-content:center;flex-shrink:0}
+.board-actions{padding-top:12px;padding-bottom:4px}
+.board-controls{padding-bottom:5px}
+.settings-global{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px;background:white;border:1px solid #e7e2d6;border-radius:10px;color:#182d37}
+.settings-global span{flex:1;min-width:0}
+.settings-global strong{display:block;font-size:13px;line-height:1.35}
+.settings-global small{display:block;font-size:11px;line-height:1.4;color:#52646b;margin-top:5px}
+.settings-global input{width:22px;height:22px;flex:0 0 auto;accent-color:#14796d}
+
+/* V7 — Nouvelle DA « Carnet d'équipage » : mer de minuit, corail, menthe et ivoire.
+   La zone de commandes ne défile jamais ; les résultats occupent le reste. */
+:root{--navy:#123b43;--navy2:#174b50;--paper:#f7f0dd;--white:#fffaf0;--ink:#1b4048;--muted:#63777b;--gold:#ffbb68;--teal:#187f77;--line:#cddbd5;--red:#bd5550;--good:#106b61;--purple:#15555d;--purple-deep:#113b47;--sun:#ffb765}
+body{background:#0c3440;color:#183f45}
+.shell{width:375px;max-width:375px;background:#0e4550;color:#fff;box-shadow:0 12px 45px #071e2877}
+.topbar{height:52px;background:#103c48;border-bottom:1px solid #72b7a448;color:#fff;padding:0 16px;gap:10px}
+.brand-icon{background:#ef765b;color:#fff;border-color:#f9c797}
+.brand-name{font-family:system-ui,sans-serif;font-size:14px;font-weight:900;letter-spacing:.25px}
+.brand-sub{color:#aed4ce;letter-spacing:.6px}
+.top-action{border:1px solid #8fc5bd77;background:#ffffff0c;color:#f9dfad;border-radius:8px}
+.view.game-purple{background:#0f4852;color:#fff;gap:0}
+.action-board{flex:0 0 auto;max-height:none!important;overflow:visible!important;margin:7px 8px 5px;padding:7px 7px 9px;border:1px solid #6da59b;border-radius:13px;background:#195a61;box-shadow:0 3px 0 #082c3780;min-height:0}
+.turn-title{min-height:29px;color:#fff;font-size:15px}
+.turn-title b{font-size:17px;font-weight:900}.turn-title span{font-size:11px;color:#ffd9a0;opacity:1}
+.turn-nav{color:#ffd18d;font-weight:900}
+.pirate-cards{overflow:visible!important;min-height:0;max-height:none!important;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:3px 1px;align-content:start}
+.pirate-card{background:#f6efde;border:1px solid #f6ddb1;border-radius:9px;padding:5px 6px;box-shadow:0 2px 0 #0a30344d;color:#153d43}
+.pirate-head{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:3px}.pirate-name{color:#204750;font-size:11px;font-weight:900;line-height:1.15;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bonus-badge{flex:0 0 auto;font-size:10px;font-weight:900;padding:2px 6px;border-radius:999px;background:#e9f6f3;color:#0f5f63}.bonus-badge.positive{background:#e9f6f3;color:#0f5f63}.bonus-badge.negative{background:#fde9e5;color:#b24f42}
+.pirate-card-main{min-height:56px;border:0;border-radius:7px;padding:3px 5px;background:#fffcf3;align-items:center;justify-content:space-around;gap:4px}
+.pirate-card .card-values{align-items:center;text-align:center;gap:2px;flex:1}
+.card-count{color:#143c43;gap:3px;justify-content:center}
+.card-count span{color:#224950;font-size:11px}
+.card-count strong{color:#d85d48;font-size:21px;font-weight:900}
+.pirate-card .bet-remember{color:#42666a;font-size:10px;font-weight:650;line-height:1.2}
+.pirate-card .bet-remember strong{color:#214a51;font-weight:900;font-size:11px}
+.pirate-card .stepper-mini{display:flex;flex-direction:column-reverse;align-items:center;justify-content:center;gap:3px}
+.pirate-card .count-btn{background:#146d72;color:#fff;border:0;border-radius:6px;width:28px;height:26px;font-size:18px;box-shadow:0 1px 0 #063840}
+.pirate-card .count-btn:disabled{opacity:.3}
+.board-controls{padding:7px 2px 2px;min-height:31px;gap:6px}.board-tools{display:flex;gap:8px}
+.kraken-small{color:#fff0d4;font-size:11px}.kraken-small .count-btn{background:#e4faf1;color:#0d5558;border:0;border-radius:6px;width:25px;height:25px}
+.kraken-small .count-val{color:#fff;font-weight:900}
+.board-tools{gap:6px}
+.board-tool{border:1px solid #ffca84;color:#fff7e7;background:#0d454f;border-radius:8px;padding:5px 10px;font-size:11px;min-height:29px;font-weight:800}
+.bet-note{color:#d6eae5;font-size:11px}
+.board-actions{padding:16px 1px 1px}
+.gold-action{background:#ffb66f;color:#273c40;border:0;border-radius:9px;min-height:36px;padding:5px 23px;font-size:12px;font-weight:900;box-shadow:0 3px 0 #cc8251}
+.gold-action:disabled{opacity:.48;filter:grayscale(.4);box-shadow:none}
+.score-board{padding:5px 8px 8px;background:#0f4852;min-height:0;flex:1;display:flex;flex-direction:column}
+.scores-scroll{min-height:0;flex:1;overflow:auto;overscroll-behavior:contain;border:1px solid #619a92;border-radius:9px;background:#0a3943}
+.score-grid{min-width:calc(38px + 62px * var(--nplayers, 4));color:#f7f3e6}
+.score-grid th,.score-grid td{min-width:62px;width:62px;padding:7px 2px;font-size:11px}
+.score-grid thead th{background:#1d6265;border-bottom:1px solid #ffbe74;color:#fff5db}
+.score-grid thead .totals th{background:#144d58;color:#ffc77a;border-bottom:2px solid #ffbe74}
+.score-grid th.round-col,.score-grid tbody th,.score-grid thead .totals th:first-child{width:38px;min-width:38px;background:#174c58}
+.score-grid tbody tr.current-round td,.score-grid tbody tr.current-round th{background:#246d70;color:#ffde9b}
+.score-grid tbody td{border-bottom:1px solid #7bb6a51c}
+.score-grid .leader{color:#ffc976}
+.home-panel{background:#174c55;border:1px solid #65a294;padding-top:30px;padding-bottom:30px}
+.btn-primary{background:#ffb66f;color:#203f43}.btn-dark{background:#146e70}.eyebrow{color:#ffb66f}.footer-dock{background:#0f4852;border-top:0;padding-top:12px;padding-bottom:max(12px,env(safe-area-inset-bottom))}.footer-dock .btn-primary{background:#ffb66f;color:#203f43;box-shadow:0 3px 0 #cc8251}.setup-count{color:#ffb66f;font-weight:800}
+.modal,.sheet{background:#fff7e6;color:#1b4048;border-radius:18px;border:1px solid #e8d5b6}
+.sheet h2,.modal h2,.sheet .people-modal-name,.sheet .people-modal-value{color:#1c4650}
+.sheet .people-modal-row .count-btn{background:#146d72;border-color:#146d72;color:#fff;border-radius:8px}
+.settings-global{background:#fffaf0;color:#22434c;border-color:#d5d9cd}
+.settings-global input{accent-color:#167e78}
+/* Les listes longues utilisent une densité renforcée, sans aucun scroll dans les commandes. */
+.action-board[data-player-count="7"] .pirate-card,
+.action-board[data-player-count="8"] .pirate-card,
+.action-board[data-player-count="9"] .pirate-card,
+.action-board[data-player-count="10"] .pirate-card{padding:3px 5px}
+.action-board[data-player-count="7"] .pirate-card-main,
+.action-board[data-player-count="8"] .pirate-card-main,
+.action-board[data-player-count="9"] .pirate-card-main,
+.action-board[data-player-count="10"] .pirate-card-main{min-height:43px;padding:2px 4px}
+.action-board[data-player-count="7"] .pirate-name,
+.action-board[data-player-count="8"] .pirate-name,
+.action-board[data-player-count="9"] .pirate-name,
+.action-board[data-player-count="10"] .pirate-name{margin-bottom:2px;font-size:10px}
+.action-board[data-player-count="7"] .pirate-card .count-btn,
+.action-board[data-player-count="8"] .pirate-card .count-btn,
+.action-board[data-player-count="9"] .pirate-card .count-btn,
+.action-board[data-player-count="10"] .pirate-card .count-btn{height:20px;width:25px;font-size:15px}
+.action-board[data-player-count="7"] .card-count strong,
+.action-board[data-player-count="8"] .card-count strong,
+.action-board[data-player-count="9"] .card-count strong,
+.action-board[data-player-count="10"] .card-count strong{font-size:18px}
+@media(max-height:660px){.topbar{height:41px}.action-board{margin:4px 6px;padding:4px 6px 7px}.turn-title{min-height:24px}.pirate-cards{gap:4px;padding:1px}.pirate-card{padding:3px 5px}.pirate-name{margin-bottom:1px}.pirate-card-main{min-height:44px;padding:2px 4px}.pirate-card .count-btn{width:25px;height:21px;font-size:15px}.card-count strong{font-size:18px}.board-controls{padding:4px 1px 0}.board-actions{padding-top:7px}.gold-action{min-height:30px}.score-board{padding-top:2px}}
+@media(min-width:600px){body{background:#cbded7}.shell{height:min(860px,96dvh)}}
+
+  </style>
+</head>
+<body>
+  <div id="app" class="shell"></div>
+  <script>
+  (() => {
+    'use strict';
+    const KEY='skull-king-score-prototype-v03';
+    const MAX_PLAYERS=10;
+    const TOTAL_ROUNDS=10;
+    const $app=document.getElementById('app');
+    let game=null;
+    let screen='home';
+    let displayRound=1;
+    let reviewingBids=false; // Navigation temporaire vers les paris enregistrés
+    let draftNames=['',''];
+    let modal=null;
+    let toastTimer=null;
+
+    const h=(s)=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
+    const id=()=>Math.random().toString(36).slice(2,10);
+    const plural=(x,singular,pluralWord)=>x+' '+(x===1?singular:pluralWord);
+    const fmt=(n,sign=true)=> n>0&&sign?'+'+n:String(n);
+    const toast=(message)=>{clearTimeout(toastTimer);document.querySelector('.toast')?.remove();let e=document.createElement('div');e.className='toast';e.textContent=message;document.body.appendChild(e);toastTimer=setTimeout(()=>e.remove(),2300);};
+
+    function newRound(n,players){
+      const r={number:n,phase:'bids',bids:{},tricks:{},bonuses:{},allowFailedBonus:{},harryDelta:{},originalBids:{},kraken:0};
+      for(const p of players){r.bids[p.id]=0;r.tricks[p.id]=0;r.bonuses[p.id]=0;r.allowFailedBonus[p.id]=false;r.harryDelta[p.id]=0;r.originalBids[p.id]=0;}
+      return r;
+    }
+    function blankGame(names) {
+      const players=names.map(name=>({id:id(),name:name.trim()}));
+      return {version:3,players,rounds:[newRound(1,players)],currentRound:1,finished:false,allowFailedBonusGlobal:true,created:Date.now()};
+    }
+    function activeRound(){return game?.rounds.find(r=>r.number===displayRound);}
+    function getCurrent(){return game?.rounds.find(r=>r.number===game.currentRound);}
+    function roundScore(r,pid){
+      const bid=r.bids[pid]||0, tricks=r.tricks[pid]||0;
+      const success=bid===tricks;
+      const base=bid===0?(success?1:-1)*r.number*10:(success?bid*20:-10*Math.abs(bid-tricks));
+      const bonus=(success||game.allowFailedBonusGlobal)?(r.bonuses[pid]||0):0;
+      return {base,bonus,total:base+bonus,success};
+    }
+    function leaderboard(){
+      if(!game)return[];
+      return game.players.map((p,i)=>({ ...p, order:i, score:game.rounds.filter(r=>r.phase==='complete').reduce((sum,r)=>sum+roundScore(r,p.id).total,0)})).sort((a,b)=>b.score-a.score||a.order-b.order);
+    }
+    function save(){
+      try {localStorage.setItem(KEY,JSON.stringify(game));}catch(e){/* Local storage can be blocked for file:// URLs. */}
+    }
+    function load(){
+      try {const v=JSON.parse(localStorage.getItem(KEY));if(v?.version===3&&Array.isArray(v.players)&&Array.isArray(v.rounds))return v;}catch(e){}
+      return null;
+    }
+    function createGame(names){
+      if(names.length<2||names.length>MAX_PLAYERS||names.some(s=>!s.trim())){toast('Ajoute entre 2 et 10 prénoms.');return;}
+      game=blankGame(names);
+      screen='game';displayRound=1;reviewingBids=false;save();render(true);
+    }
+    function createDemo(){
+      game=blankGame(['Camille','Alex','Julie','Max']);
+      const rows=[
+        [[1,1,0,1],[1,0,0,0],[0,0,0,0]],
+        [[0,2,1,0],[0,1,1,0],[0,10,0,-5]],
+        [[2,1,0,0],[2,0,1,0],[20,0,0,0]]
+      ];
+      rows.forEach((values,i)=>{
+        let r=game.rounds[i]; r.phase='complete';
+        game.players.forEach((p,k)=>{r.bids[p.id]=values[0][k];r.originalBids[p.id]=values[0][k];r.tricks[p.id]=values[1][k];r.bonuses[p.id]=values[2][k];});
+        if(i===1)r.kraken=1;
+        game.rounds.push(newRound(i+2,game.players));
+      });
+      game.currentRound=4;
+      const active=getCurrent(); active.phase='play';
+      [2,1,0,1].forEach((v,i)=>{active.bids[game.players[i].id]=v;active.originalBids[game.players[i].id]=v;});
+      screen='game';displayRound=4;reviewingBids=false;save();render(true);toast('Partie de démonstration chargée');
+    }
+    function topbar(action=''){
+      return `<header class="topbar"><div class="brand"><div class="brand-icon" aria-hidden="true">☠</div><div><div class="brand-name">Skull King</div><div class="brand-sub">À l'abordage !</div></div></div>${action}</header>`;
+    }
+
+    function home(){
+      const resume=game&&!game.finished;
+      return `${topbar()}<main class="view home-content"><section class="home-panel"><h1>Que le meilleur pirate gagne.</h1><p>Paris, plis, bonus et classement, sans calcul et sans papier.</p><button class="btn btn-primary btn-full" data-action="setup">Nouvelle partie →</button></section><div class="stack">${resume?`<button class="btn btn-dark btn-full" data-action="resume">Reprendre la manche ${game.currentRound} →</button>`:''}<button class="btn btn-soft btn-full" data-action="demo">Tester avec 4 joueurs fictifs</button></div></main>`;
+    }
+
+    function setup(){
+      return `${topbar(`<button class="top-action" data-action="home">Accueil</button>`)}<main class="view"><div class="setup-head"><span class="eyebrow">Nouvelle partie</span><h1>Votre équipage</h1><p><span class="setup-count">Entre 2 et 10 joueurs</span> · <span class="setup-count">${draftNames.length}/10 joueurs ajoutés</span></p></div><div class="setup-scroll"><div>${draftNames.map((name,i)=>`<div class="field-row"><span class="field-index">${i+1}.</span><input class="field-input" data-name-index="${i}" aria-label="Prénom du joueur ${i+1}" placeholder="Nom du pirate" maxlength="26" value="${h(name)}"><button class="remove-btn" aria-label="Supprimer joueur ${i+1}" data-action="remove-player" data-index="${i}" ${draftNames.length<=2?'disabled':''}>×</button></div>`).join('')}</div><button class="btn btn-soft add-player" data-action="add-player" ${draftNames.length===10?'disabled':''}>+ Ajouter un joueur</button></div><footer class="footer-dock"><button class="btn btn-primary" data-action="start">Commencer la partie →</button></footer></main>`;
+    }
+
+    function stepper(actionMinus,actionPlus,value,options={}){
+      const min=options.min??0,max=options.max??999,step=options.step??1,pid=options.pid||'',aria=options.aria||'Compteur';
+      return `<div class="stepper-mini" role="group" aria-label="${h(aria)}"><button class="count-btn" aria-label="Diminuer ${h(aria)} de ${step}" data-action="${actionMinus}" data-player="${h(pid)}" ${value<=min?'disabled':''}>−</button><span class="count-val">${value}</span><button class="count-btn" aria-label="Augmenter ${h(aria)} de ${step}" data-action="${actionPlus}" data-player="${h(pid)}" ${value>=max?'disabled':''}>+</button></div>`;
+    }
+
+    function gamePage(){
+      const r=activeRound(),past=r.number!==game.currentRound,play=r.phase!=='bids'&&!reviewingBids;
+      const tricksDone=game.players.reduce((sum,p)=>sum+(r.tricks[p.id]||0),0);
+      const tricksAccounted=tricksDone+r.kraken;
+      const canComplete=tricksAccounted===r.number;
+      const complete=game.rounds.filter(x=>x.phase==='complete');
+      const totals=Object.fromEntries(game.players.map(p=>[p.id,complete.reduce((sum,x)=>sum+roundScore(x,p.id).total,0)]));
+      const maxScore=Math.max(...Object.values(totals));
+      const idx=game.rounds.findIndex(x=>x.number===r.number),prev=game.rounds[idx-1],next=game.rounds[idx+1];
+      const totalBids=game.players.reduce((sum,p)=>sum+(r.bids[p.id]||0),0);
+      const phaseLabel=`Paris ${totalBids} sur ${r.number}`;
+      const canGoBack=reviewingBids||r.phase==='play'||Boolean(prev);
+      const leftAction=(r.phase==='play'&&!reviewingBids)?'back-to-bids':'view-round';
+      const leftRound=reviewingBids?(prev?.number||0):(prev?.number||0);
+      const cards=game.players.map(p=>{
+        const bid=r.bids[p.id]||0,tricks=r.tricks[p.id]||0;
+        const n=play?tricks:bid;
+        return `<div class="pirate-card"><div class="pirate-head"><div class="pirate-name">${h(p.name)}</div>${(r.bonuses[p.id]||0)?`<div class="bonus-badge ${r.bonuses[p.id]>0?'positive':'negative'}">${fmt(r.bonuses[p.id]||0)}</div>`:''}</div>
+          <div class="pirate-card-main"><div class="card-values"><div class="card-count"><span>${play?'Plis :':'Pari :'}</span> <strong>${n}</strong></div>${play?`<div class="bet-remember">Pari : <strong>${bid}</strong></div>`:''}</div>
+          ${stepper(play?'trick-minus':'bid-minus',play?'trick-plus':'bid-plus',n,{pid:p.id,max:r.number,aria:(play?'Plis':'Pari')+' de '+p.name})}</div></div>`;
+      }).join('');
+      const rounds=game.rounds.filter(x=>x.number<=r.number);
+      const table=`<div class="scores-scroll"><table class="score-grid"><thead><tr><th class="round-col">Tour</th>${game.players.map(p=>`<th title="${h(p.name)}">${h(p.name)}</th>`).join('')}</tr><tr class="totals"><th>Total</th>${game.players.map(p=>`<th class="${totals[p.id]===maxScore?'leader':''}">${totals[p.id]}</th>`).join('')}</tr></thead><tbody>${rounds.map(x=>`<tr class="${x.number===r.number?'current-round':''}"><th>${x.number}</th>${game.players.map(p=>`<td>${x.phase==='complete'?roundScore(x,p.id).total:'-'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+      return `${topbar(`<button class="top-action" data-action="open-finish">Terminer</button><button class="top-action settings-action" data-action="open-settings" aria-label="Paramètres des bonus" title="Paramètres">⚙</button>`)}
+       <main class="view game-purple" style="--nplayers:${game.players.length}"><section class="action-board" data-player-count="${game.players.length}"><div class="turn-title"><button class="turn-nav" aria-label="Manche précédente" data-action="${leftAction}" data-round="${leftRound}" ${!canGoBack?'disabled':''}>‹</button><div><b>Tour ${r.number}</b><span> — ${phaseLabel}</span></div><button class="turn-nav" aria-label="Manche suivante" data-action="${reviewingBids?'back-to-play':'view-round'}" data-round="${next?.number||0}" ${!next&&!reviewingBids?'disabled':''}>›</button></div>
+       <div class="pirate-cards">${cards}</div>
+       <div class="board-controls">${play?`<div class="kraken-small"><span>🐙 Kraken</span>${stepper('kraken-minus','kraken-plus',r.kraken,{max:99,aria:'Kraken'})}</div><div class="board-tools"><button class="board-tool" data-action="open-harry-list">Harry</button><button class="board-tool" data-action="open-bonus-list">💰 Bonus</button></div>`:'<span class="bet-note">Choisissez les paris de chaque joueur</span>'}
+       </div><div class="board-actions">${past?`<button class="gold-action" data-action="current">Manche ${game.currentRound} ↗</button>`:!play?`<button class="gold-action" data-action="save-bids">${reviewingBids?'Enregistrer les paris':'Valider les paris'}</button>`:r.phase==='play'?`<button class="gold-action" data-action="complete-round" ${!canComplete?'disabled':''}>Valider la manche</button>`:`<button class="gold-action" data-action="current">Manche en cours</button>`}</div></section>
+       <section class="score-board">${table}</section>
+       </main>`;
+    }
+
+    function finalPage(){
+      const rank=leaderboard(),lead=rank[0]?.score??0,winners=rank.filter(p=>p.score===lead).map(p=>p.name),total=game.rounds.filter(r=>r.phase==='complete').length;
+      return `${topbar()}<main class="view"><div class="final-title"><div class="final-icon">🏆</div><h1>${winners.length===1?'Victoire de '+h(winners[0])+' !':'Victoire partagée !'}</h1><p>${total} manche${total>1?'s':''} validée${total>1?'s':''} · ${fmt(lead)} pts</p></div><div class="grid-legend" style="display:flex;justify-content:space-between"><span>Classement final</span><span>Points</span></div><div class="final-list">${rank.map((p,i)=>`<div class="final-row"><span class="position">${i===0?'♛':i+1}</span><span><strong>${h(p.name)}</strong></span><strong>${fmt(p.score)}</strong></div>`).join('')}</div><div class="final-actions"><button class="btn btn-primary btn-full" data-action="replay">Revanche avec les mêmes joueurs →</button><button class="btn btn-soft btn-full" data-action="setup">Nouvel équipage</button></div></main>`;
+    }
+
+    function modalHTML(){
+      if(!modal)return'';
+      if(modal.type==='bonus-list'){
+        const r=activeRound();
+        return `<div class="modal-backdrop sheet-wrap"><section class="sheet" role="dialog" aria-modal="true" aria-label="Bonus des joueurs"><div class="sheet-head"><h2>💰 Bonus</h2><button class="close-x" data-action="close-modal" aria-label="Fermer">×</button></div><div class="people-modal">${game.players.map(p=>`<div class="people-modal-row"><span class="people-modal-name">${h(p.name)}</span><span class="people-modal-value">${fmt(r.bonuses[p.id]||0)}</span><button class="count-btn" data-action="bonus-minus" data-player="${h(p.id)}" aria-label="Retirer 5 points de bonus à ${h(p.name)}">−</button><button class="count-btn" data-action="bonus-plus" data-player="${h(p.id)}" aria-label="Ajouter 5 points de bonus à ${h(p.name)}">+</button></div>`).join('')}</div>${rulesHTML()}<div class="sheet-footer"><button class="btn btn-dark" data-action="close-modal">Valider</button></div></section></div>`;
+      }
+      if(modal.type==='settings'){
+        const r=activeRound();
+        return `<div class="modal-backdrop sheet-wrap"><section class="sheet" role="dialog" aria-modal="true" aria-label="Paramètres"><div class="sheet-head"><h2>⚙ Paramètres</h2><button class="close-x" data-action="close-modal" aria-label="Fermer">×</button></div><p>Cette règle s'applique à tous les joueurs et à toutes les manches de la partie.</p><label class="settings-global"><span><strong>Compter les bonus même si le pari est raté</strong><small>Si désactivé, les bonus comptent uniquement lorsque le pari est réussi.</small></span><input type="checkbox" data-global-bonus ${game.allowFailedBonusGlobal?'checked':''} aria-label="Compter les bonus même si le pari est raté"></label><div class="sheet-footer"><button class="btn btn-dark" data-action="close-modal">Valider</button></div></section></div>`;
+      }
+      if(modal.type==='harry-list'){
+        const r=activeRound();
+        return `<div class="modal-backdrop sheet-wrap"><section class="sheet" role="dialog" aria-modal="true" aria-label="Harry le Géant"><div class="sheet-head"><h2>Harry le Géant</h2><button class="close-x" data-action="close-modal" aria-label="Fermer">×</button></div><p>Ajuster le pari de chaque joueur de −1 ou +1 par rapport à son pari initial.</p><div class="people-modal">${game.players.map(p=>{const original=r.originalBids[p.id]??r.bids[p.id],current=r.bids[p.id];return `<div class="people-modal-row"><span class="people-modal-name">${h(p.name)} <small style="display:block;font-size:10px;color:#68767e;font-weight:500">Initial : ${original}</small></span><span class="people-modal-value">${current}</span><button class="count-btn" data-action="harry-minus" data-player="${h(p.id)}" ${current<=Math.max(0,original-1)?'disabled':''} aria-label="Harry : retirer un pli à ${h(p.name)}">−</button><button class="count-btn" data-action="harry-plus" data-player="${h(p.id)}" ${current>=Math.min(r.number,original+1)?'disabled':''} aria-label="Harry : ajouter un pli à ${h(p.name)}">+</button></div>`}).join('')}</div><div class="sheet-footer"><button class="btn btn-dark" data-action="close-modal">Valider</button></div></section></div>`;
+      }
+      if(modal.type==='rules')return `<div class="modal-backdrop sheet-wrap"><section class="sheet" role="dialog" aria-modal="true" aria-label="Rappel des bonus"><div class="sheet-head"><h2>📖 Rappel des règles</h2><button class="close-x" data-action="close-modal" aria-label="Fermer">×</button></div>${rulesHTML()}<div class="sheet-footer"><button class="btn btn-dark" data-action="close-modal">Fermer</button></div></section></div>`;
+      if(modal.type==='finish'){
+        const unvalidated=game.rounds.some(r=>r.phase!=='complete');
+        return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><h2>Terminer la partie ?</h2><p>Le classement final s'affichera immédiatement.</p>${unvalidated?'<div class="notice">La manche en cours n’est pas terminée : ses points ne seront pas comptabilisés.</div>':''}<div class="modal-buttons"><button class="btn btn-soft" data-action="close-modal">Continuer</button><button class="btn btn-danger" data-action="confirm-finish">Terminer</button></div></div></div>`;
+      }
+      if(modal.type==='harry'){
+        const r=activeRound(),p=game.players.find(x=>x.id===modal.pid),original=r.originalBids[p.id]??r.bids[p.id];
+        return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><h2>Harry le Géant</h2><p>Ajuster le pari enregistré de <b>${h(p.name)}</b> d'un pli maximum.</p><div class="harry-summary"><div><span>Pari initial</span><strong>${original}</strong></div><div><span>Pari actuel</span><strong>${r.bids[p.id]}</strong></div></div><div class="harry-control">${stepper('harry-minus','harry-plus',r.bids[p.id],{pid:p.id,min:Math.max(0,original-1),max:Math.min(r.number,original+1),aria:'Ajustement Harry'})}</div><div class="modal-buttons"><button class="btn btn-soft" data-action="harry-reset">Réinitialiser</button><button class="btn btn-dark" data-action="close-modal">Valider</button></div></div></div>`;
+      }
+      if(modal.type==='replace')return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><h2>Remplacer la partie ?</h2><p>La partie actuelle sera remplacée. Une seule partie est sauvegardée sur ce téléphone.</p><div class="modal-buttons"><button class="btn btn-soft" data-action="close-modal">Annuler</button><button class="btn btn-danger" data-action="confirm-replace">Remplacer</button></div></div></div>`;
+      return'';
+    }
+    function rulesHTML(){return `<div class="rules-list"><h3>Rappel · Captures spéciales</h3><ul><li>Sirène capturée par un pirate : <b>+20 pts</b></li><li>Pirate capturé par Skull King : <b>+30 pts</b></li><li>Skull King capturé par une sirène : <b>+40 pts</b></li></ul></div>`;}
+
+    function render(scrollTop=false){
+      const previousScroll=$app.querySelector('.player-scroll,.setup-scroll,.final-list')?.scrollTop||0;
+      const previousModalScroll=$app.querySelector('.sheet')?.scrollTop||0;
+      $app.innerHTML=screen==='home'?home():screen==='setup'?setup():screen==='final'?finalPage():gamePage();
+      if(modal){$app.insertAdjacentHTML('beforeend',modalHTML());const sheet=$app.querySelector('.sheet');if(sheet)sheet.scrollTop=previousModalScroll;}
+      if(!scrollTop){const el=$app.querySelector('.player-scroll,.setup-scroll,.final-list');if(el)el.scrollTop=previousScroll;}
+    }
+
+    function modifyCounter(action,pid){
+      const r=activeRound();if(!r)return;
+      const val=action.endsWith('plus')?1:-1;
+      if(action.startsWith('bid-')){
+        if(r.phase!=='bids'&&!reviewingBids)return;
+        r.bids[pid]=Math.max(0,Math.min(r.number,r.bids[pid]+val));
+      }else if(action.startsWith('trick-')){
+        if(r.phase==='bids'||reviewingBids)return;
+        r.tricks[pid]=Math.max(0,Math.min(r.number,r.tricks[pid]+val));
+      }else if(action.startsWith('bonus-')){
+        if(r.phase==='bids'||reviewingBids)return;
+        r.bonuses[pid]=Math.max(-9995,Math.min(9995,r.bonuses[pid]+val*5));
+      }else if(action.startsWith('kraken-')){
+        if(r.phase==='bids'||reviewingBids)return;
+        r.kraken=Math.max(0,Math.min(99,r.kraken+val));
+      }else if(action.startsWith('harry-')){
+        const initial=r.originalBids[pid]??r.bids[pid];
+        r.bids[pid]=Math.max(Math.max(0,initial-1),Math.min(Math.min(r.number,initial+1),r.bids[pid]+val));
+        r.harryDelta[pid]=r.bids[pid]-initial;
+      }
+      save();render();
+    }
+    $app.addEventListener('input',(e)=>{
+      if(e.target.matches('[data-name-index]')){
+        draftNames[Number(e.target.dataset.nameIndex)]=e.target.value;
+      }
+    });
+    $app.addEventListener('change',(e)=>{
+      if(e.target.matches('[data-global-bonus]')){
+        game.allowFailedBonusGlobal=e.target.checked;
+        save();render();
+      }
+    });
+    $app.addEventListener('click',(e)=>{
+      const button=e.target.closest('[data-action]');if(!button||button.disabled)return;
+      const a=button.dataset.action,pid=button.dataset.player;
+      if(a==='home'){screen='home';modal=null;render(true);return;}
+      if(a==='setup'){
+        if(game&&!game.finished&&screen!=='setup') {modal={type:'replace',next:'setup'};render();return;}
+        draftNames=game?.finished?game.players.map(p=>p.name):['',''];screen='setup';modal=null;render(true);return;
+      }
+      if(a==='demo'){
+        if(game&&!game.finished){modal={type:'replace',next:'demo'};render();return;}
+        createDemo();return;
+      }
+      if(a==='resume'){screen='game';displayRound=game.currentRound;reviewingBids=false;render(true);return;}
+      if(a==='add-player'){if(draftNames.length<10)draftNames.push('');render();return;}
+      if(a==='remove-player'){if(draftNames.length>2)draftNames.splice(Number(button.dataset.index),1);render();return;}
+      if(a==='start'){createGame(draftNames);return;}
+      if(a==='back-to-bids'){reviewingBids=true;render(true);return;}
+      if(a==='back-to-play'){reviewingBids=false;render(true);return;}
+      if(a==='view-round'){const n=Number(button.dataset.round);if(game.rounds.some(r=>r.number===n)){reviewingBids=false;displayRound=n;render(true);}return;}
+      if(a==='current'){reviewingBids=false;displayRound=game.currentRound;render(true);return;}
+      if(['bid-minus','bid-plus','trick-minus','trick-plus','bonus-minus','bonus-plus','kraken-minus','kraken-plus','harry-minus','harry-plus'].includes(a)){modifyCounter(a,pid);return;}
+      if(a==='save-bids'){
+        const r=activeRound();if((r.phase!=='bids'&&!reviewingBids)||r.number!==game.currentRound)return;
+        r.phase='play';r.originalBids={...r.bids};
+        for(const p of game.players)r.harryDelta[p.id]=0;
+        reviewingBids=false;save();render(true);toast('Paris enregistrés !');return;
+      }
+      if(a==='complete-round'){
+        const r=activeRound();if(r.phase!=='play'||r.number!==game.currentRound||reviewingBids)return;
+        const total=game.players.reduce((sum,p)=>sum+(r.tricks[p.id]||0),0)+r.kraken;
+        if(total!==r.number){toast(`Plis : ${total} sur ${r.number} — corrige la saisie`);return;}
+        r.phase='complete';
+        if(r.number===TOTAL_ROUNDS){game.finished=true;screen='final';}
+        else{game.currentRound=r.number+1;game.rounds.push(newRound(game.currentRound,game.players));displayRound=game.currentRound;}
+        reviewingBids=false;save();render(true);toast('Manche enregistrée');return;
+      }
+      if(a==='open-finish'){modal={type:'finish'};render();return;}
+      if(a==='confirm-finish'){game.finished=true;screen='final';modal=null;save();render(true);return;}
+      if(a==='open-settings'){modal={type:'settings'};render();return;}
+      if(a==='open-bonus-list'){modal={type:'bonus-list'};render();return;}
+      if(a==='open-harry-list'){modal={type:'harry-list'};render();return;}
+      if(a==='show-rules'){modal={type:'rules'};render();return;}
+      if(a==='harry'){modal={type:'harry',pid};render();return;}
+      if(a==='harry-reset'){const r=activeRound(),pid=modal.pid;r.bids[pid]=r.originalBids[pid];r.harryDelta[pid]=0;save();render();return;}
+      if(a==='close-modal'){modal=null;render();return;}
+      if(a==='confirm-replace'){
+        const next=modal.next;modal=null;
+        if(next==='demo'){createDemo();return;}
+        if(next==='setup'){draftNames=['',''];screen='setup';render(true);return;}
+      }
+      if(a==='replay'){game=blankGame(game.players.map(p=>p.name));screen='game';displayRound=1;reviewingBids=false;save();render(true);return;}
+    });
+    // Keyboard closing of dialogs.
+    document.addEventListener('keydown',(e)=>{if(e.key==='Escape'&&modal){modal=null;render();}});
+    game=load();
+    if(game && typeof game.allowFailedBonusGlobal !== 'boolean'){game.allowFailedBonusGlobal=false;save();}
+    if(game){screen=game.finished?'final':'home';displayRound=game.currentRound;}
+    render();
+  })();
+  </script>
+</body>
+</html>
