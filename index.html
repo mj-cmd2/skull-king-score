@@ -271,31 +271,13 @@ body{background:#0c3440;color:#183f45}
       game=blankGame(names);
       screen='game';displayRound=1;reviewingBids=false;save();render(true);
     }
-    function createDemo(){
-      game=blankGame(['Camille','Alex','Julie','Max']);
-      const rows=[
-        [[1,1,0,1],[1,0,0,0],[0,0,0,0]],
-        [[0,2,1,0],[0,1,1,0],[0,10,0,-5]],
-        [[2,1,0,0],[2,0,1,0],[20,0,0,0]]
-      ];
-      rows.forEach((values,i)=>{
-        let r=game.rounds[i]; r.phase='complete';
-        game.players.forEach((p,k)=>{r.bids[p.id]=values[0][k];r.originalBids[p.id]=values[0][k];r.tricks[p.id]=values[1][k];r.bonuses[p.id]=values[2][k];});
-        if(i===1)r.kraken=1;
-        game.rounds.push(newRound(i+2,game.players));
-      });
-      game.currentRound=4;
-      const active=getCurrent(); active.phase='play';
-      [2,1,0,1].forEach((v,i)=>{active.bids[game.players[i].id]=v;active.originalBids[game.players[i].id]=v;});
-      screen='game';displayRound=4;reviewingBids=false;save();render(true);toast('Partie de démonstration chargée');
-    }
     function topbar(action=''){
       return `<header class="topbar"><div class="brand"><div class="brand-icon" aria-hidden="true">☠</div><div><div class="brand-name">Skull King</div><div class="brand-sub">À l'abordage !</div></div></div>${action}</header>`;
     }
 
     function home(){
       const resume=game&&!game.finished;
-      return `${topbar()}<main class="view home-content"><section class="home-panel"><h1>Que le meilleur pirate gagne.</h1><p>Paris, plis, bonus et classement, sans calcul et sans papier.</p><button class="btn btn-primary btn-full" data-action="setup">Nouvelle partie →</button></section><div class="stack">${resume?`<button class="btn btn-dark btn-full" data-action="resume">Reprendre la manche ${game.currentRound} →</button>`:''}<button class="btn btn-soft btn-full" data-action="demo">Tester avec 4 joueurs fictifs</button></div></main>`;
+      return `${topbar()}<main class="view home-content"><section class="home-panel"><h1>Que le meilleur pirate gagne.</h1><p>Paris, plis, bonus et classement, sans calcul et sans papier.</p><button class="btn btn-primary btn-full" data-action="setup">Nouvelle partie →</button></section><div class="stack">${resume?`<button class="btn btn-dark btn-full" data-action="resume">Reprendre la manche ${game.currentRound} →</button>`:''}</div></main>`;
     }
 
     function setup(){
@@ -421,10 +403,7 @@ body{background:#0c3440;color:#183f45}
         if(game&&!game.finished&&screen!=='setup') {modal={type:'replace',next:'setup'};render();return;}
         draftNames=game?.finished?game.players.map(p=>p.name):['',''];screen='setup';modal=null;render(true);return;
       }
-      if(a==='demo'){
-        if(game&&!game.finished){modal={type:'replace',next:'demo'};render();return;}
-        createDemo();return;
-      }
+
       if(a==='resume'){screen='game';displayRound=game.currentRound;reviewingBids=false;render(true);return;}
       if(a==='add-player'){if(draftNames.length<10)draftNames.push('');render();return;}
       if(a==='remove-player'){if(draftNames.length>2)draftNames.splice(Number(button.dataset.index),1);render();return;}
@@ -460,7 +439,7 @@ body{background:#0c3440;color:#183f45}
       if(a==='close-modal'){modal=null;render();return;}
       if(a==='confirm-replace'){
         const next=modal.next;modal=null;
-        if(next==='demo'){createDemo();return;}
+
         if(next==='setup'){draftNames=['',''];screen='setup';render(true);return;}
       }
       if(a==='replay'){game=blankGame(game.players.map(p=>p.name));screen='game';displayRound=1;reviewingBids=false;save();render(true);return;}
