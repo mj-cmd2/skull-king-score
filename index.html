@@ -219,6 +219,54 @@ body{background:#0c3440;color:#183f45}
 .sheet{width:100%;max-width:375px}
 /* Le logo corail renvoie à l’accueil sur tous les écrans. */
 .brand-home{flex:0 0 28px;padding:0;cursor:pointer;appearance:none}
+/* Grille de saisie adaptée au nombre de joueurs :
+   2–6 joueurs : 2 colonnes ; 7–10 joueurs : 3 colonnes. */
+.action-board[data-player-count="2"] .pirate-cards,
+.action-board[data-player-count="3"] .pirate-cards,
+.action-board[data-player-count="4"] .pirate-cards,
+.action-board[data-player-count="5"] .pirate-cards,
+.action-board[data-player-count="6"] .pirate-cards{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+.action-board[data-player-count="7"] .pirate-cards,
+.action-board[data-player-count="8"] .pirate-cards,
+.action-board[data-player-count="9"] .pirate-cards,
+.action-board[data-player-count="10"] .pirate-cards{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:4px;
+}
+.action-board[data-player-count="7"] .pirate-card,
+.action-board[data-player-count="8"] .pirate-card,
+.action-board[data-player-count="9"] .pirate-card,
+.action-board[data-player-count="10"] .pirate-card{
+  min-width:0;
+  padding:3px 4px;
+}
+.action-board[data-player-count="7"] .pirate-card-main,
+.action-board[data-player-count="8"] .pirate-card-main,
+.action-board[data-player-count="9"] .pirate-card-main,
+.action-board[data-player-count="10"] .pirate-card-main{
+  gap:2px;
+  padding:2px;
+}
+.action-board[data-player-count="7"] .pirate-card .card-count span,
+.action-board[data-player-count="8"] .pirate-card .card-count span,
+.action-board[data-player-count="9"] .pirate-card .card-count span,
+.action-board[data-player-count="10"] .pirate-card .card-count span{
+  font-size:10px;
+}
+.action-board[data-player-count="7"] .pirate-card .bet-remember,
+.action-board[data-player-count="8"] .pirate-card .bet-remember,
+.action-board[data-player-count="9"] .pirate-card .bet-remember,
+.action-board[data-player-count="10"] .pirate-card .bet-remember{
+  font-size:9px;
+}
+.action-board[data-player-count="7"] .pirate-card .stepper-mini,
+.action-board[data-player-count="8"] .pirate-card .stepper-mini,
+.action-board[data-player-count="9"] .pirate-card .stepper-mini,
+.action-board[data-player-count="10"] .pirate-card .stepper-mini{
+  flex-shrink:0;
+}
   </style>
 </head>
 <body>
