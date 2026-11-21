@@ -335,8 +335,11 @@ body{background:#0c3440;color:#183f45}
       return `${topbar()}<main class="view home-content"><section class="home-panel"><h1>Que le meilleur pirate gagne.</h1><p>Paris, plis, bonus et classement, sans calcul et sans papier.</p><button class="btn btn-primary btn-full" data-action="setup">Nouvelle partie →</button></section><div class="stack">${resume?`<button class="btn btn-dark btn-full" data-action="resume">Reprendre la manche ${game.currentRound} →</button>`:''}</div></main>`;
     }
 
+    function setupPlayerRow(name,i){
+      return `<div class="field-row"><span class="field-index">${i+1}.</span><input class="field-input" data-name-index="${i}" aria-label="Prénom du joueur ${i+1}" placeholder="Nom du pirate" maxlength="26" autocomplete="off" autocorrect="off" spellcheck="false" autocapitalize="words" enterkeyhint="${i===draftNames.length-1?'done':'next'}" value="${h(name)}"><button class="remove-btn" aria-label="Supprimer joueur ${i+1}" data-action="remove-player" data-index="${i}" ${draftNames.length<=2?'disabled':''}>×</button></div>`;
+    }
     function setup(){
-      return `${topbar()}<main class="view"><div class="setup-scroll" aria-label="Ajouter les joueurs"><div class="setup-head"><span class="eyebrow">Nouvelle partie</span><h1>Votre équipage</h1><p><span class="setup-count">Entre 2 et 10 joueurs</span> · <span class="setup-count">${draftNames.length}/10 joueurs ajoutés</span></p></div><div>${draftNames.map((name,i)=>`<div class="field-row"><span class="field-index">${i+1}.</span><input class="field-input" data-name-index="${i}" aria-label="Prénom du joueur ${i+1}" placeholder="Nom du pirate" maxlength="26" autocomplete="off" autocorrect="off" spellcheck="false" autocapitalize="words" enterkeyhint="${i===draftNames.length-1?'done':'next'}" value="${h(name)}"><button class="remove-btn" aria-label="Supprimer joueur ${i+1}" data-action="remove-player" data-index="${i}" ${draftNames.length<=2?'disabled':''}>×</button></div>`).join('')}</div><button class="btn btn-soft add-player" data-action="add-player" ${draftNames.length===10?'disabled':''}>+ Ajouter un joueur</button></div><footer class="footer-dock"><button class="btn btn-primary" data-action="start">Commencer la partie →</button></footer></main>`;
+      return `${topbar()}<main class="view"><div class="setup-scroll" aria-label="Ajouter les joueurs"><div class="setup-head"><span class="eyebrow">Nouvelle partie</span><h1>Votre équipage</h1><p><span class="setup-count">Entre 2 et 10 joueurs</span> · <span class="setup-count">${draftNames.length}/10 joueurs ajoutés</span></p></div><div data-setup-rows>${draftNames.map((name,i)=>setupPlayerRow(name,i)).join('')}</div><button class="btn btn-soft add-player" data-action="add-player" ${draftNames.length===10?'disabled':''}>+ Ajouter un joueur</button></div><footer class="footer-dock"><button class="btn btn-primary" data-action="start">Commencer la partie →</button></footer></main>`;
     }
 
     function stepper(actionMinus,actionPlus,value,options={}){
@@ -414,6 +417,41 @@ body{background:#0c3440;color:#183f45}
     }
     function rulesHTML(){return `<div class="rules-list"><h3>Rappel · Captures spéciales</h3><ul><li>Sirène capturée par un pirate : <b>+20 pts</b></li><li>Pirate capturé par Skull King : <b>+30 pts</b></li><li>Skull King capturé par une sirène : <b>+40 pts</b></li></ul></div>`;}
 
+    function openModal(next){
+      modal=next;
+      $app.querySelector('.modal-backdrop')?.remove();
+      $app.insertAdjacentHTML('beforeend',modalHTML());
+    }
+    function closeModal(){
+      modal=null;
+      $app.querySelector('.modal-backdrop')?.remove();
+    }
+    // Updating the crew must not detach focused input nodes or rebuild the header/footer.
+    function syncSetupRows(){
+      const rows=$app.querySelector('[data-setup-rows]');
+      if(!rows)return;
+      const total=draftNames.length;
+      for(const [i,row] of [...rows.children].entries()){
+        const input=row.querySelector('[data-name-index]');
+        const remove=row.querySelector('[data-action="remove-player"]');
+        const index=row.querySelector('.field-index');
+        if(index)index.textContent=(i+1)+'.';
+        if(input){
+          input.dataset.nameIndex=String(i);
+          input.setAttribute('aria-label','Prénom du joueur '+(i+1));
+          input.setAttribute('enterkeyhint',i===total-1?'done':'next');
+        }
+        if(remove){
+          remove.dataset.index=String(i);
+          remove.setAttribute('aria-label','Supprimer joueur '+(i+1));
+          remove.disabled=total<=2;
+        }
+      }
+      const count=$app.querySelector('.setup-count:last-child');
+      if(count)count.textContent=total+'/10 joueurs ajoutés';
+      const add=$app.querySelector('[data-action="add-player"]');
+      if(add)add.disabled=total>=MAX_PLAYERS;
+    }
     function render(scrollTop=false){
       const previousScroll=$app.querySelector('.player-scroll,.setup-scroll,.final-list')?.scrollTop||0;
       const previousModalScroll=$app.querySelector('.sheet')?.scrollTop||0;
@@ -545,7 +583,7 @@ body{background:#0c3440;color:#183f45}
     $app.addEventListener('change',(e)=>{
       if(e.target.matches('[data-global-bonus]')){
         game.allowFailedBonusGlobal=e.target.checked;
-        save();render();
+        save();
       }
     });
     $app.addEventListener('click',(e)=>{
@@ -558,8 +596,20 @@ body{background:#0c3440;color:#183f45}
       }
 
       if(a==='resume'){screen='game';displayRound=game.currentRound;reviewingBids=false;render(true);return;}
-      if(a==='add-player'){if(draftNames.length<10)draftNames.push('');render();return;}
-      if(a==='remove-player'){if(draftNames.length>2)draftNames.splice(Number(button.dataset.index),1);render();return;}
+      if(a==='add-player'){
+        if(draftNames.length>=MAX_PLAYERS)return;
+        const i=draftNames.length;draftNames.push('');
+        $app.querySelector('[data-setup-rows]')?.insertAdjacentHTML('beforeend',setupPlayerRow('',i));
+        syncSetupRows();return;
+      }
+      if(a==='remove-player'){
+        if(draftNames.length<=2)return;
+        const i=Number(button.dataset.index);
+        if(!Number.isInteger(i)||i<0||i>=draftNames.length)return;
+        draftNames.splice(i,1);
+        button.closest('.field-row')?.remove();
+        syncSetupRows();return;
+      }
       if(a==='start'){createGame(draftNames);return;}
       if(a==='back-to-bids'){reviewingBids=true;render(true);return;}
       if(a==='back-to-play'){reviewingBids=false;render(true);return;}
@@ -581,19 +631,18 @@ body{background:#0c3440;color:#183f45}
         else{game.currentRound=r.number+1;game.rounds.push(newRound(game.currentRound,game.players));displayRound=game.currentRound;}
         reviewingBids=false;save();render(true);return;
       }
-      if(a==='open-finish'){modal={type:'finish'};render();return;}
+      if(a==='open-finish'){openModal({type:'finish'});return;}
       if(a==='confirm-finish'){game.finished=true;screen='final';modal=null;save();render(true);return;}
-      if(a==='open-settings'){modal={type:'settings'};render();return;}
-      if(a==='open-bonus-list'){modal={type:'bonus-list'};render();return;}
-      if(a==='open-harry-list'){modal={type:'harry-list'};render();return;}
-      if(a==='show-rules'){modal={type:'rules'};render();return;}
-      if(a==='harry'){modal={type:'harry',pid};render();return;}
+      if(a==='open-settings'){openModal({type:'settings'});return;}
+      if(a==='open-bonus-list'){openModal({type:'bonus-list'});return;}
+      if(a==='open-harry-list'){openModal({type:'harry-list'});return;}
+      if(a==='show-rules'){openModal({type:'rules'});return;}
+      if(a==='harry'){openModal({type:'harry',pid});return;}
       if(a==='harry-reset'){const r=activeRound(),pid=modal.pid;r.bids[pid]=r.originalBids[pid];r.harryDelta[pid]=0;save();render();return;}
       if(a==='close-modal'){
         // The underlying game UI has already been updated by the counters.
         // Dismissing a dialog should not rebuild the page or score table.
-        modal=null;
-        $app.querySelector('.modal-backdrop')?.remove();
+        closeModal();
         return;
       }
       if(a==='confirm-replace'){
@@ -604,7 +653,7 @@ body{background:#0c3440;color:#183f45}
       if(a==='replay'){game=blankGame(game.players.map(p=>p.name));screen='game';displayRound=1;reviewingBids=false;save();render(true);return;}
     });
     // Keyboard closing of dialogs.
-    document.addEventListener('keydown',(e)=>{if(e.key==='Escape'&&modal){modal=null;render();}});
+    document.addEventListener('keydown',(e)=>{if(e.key==='Escape'&&modal)closeModal();});
     game=load();
     if(game && typeof game.allowFailedBonusGlobal !== 'boolean'){game.allowFailedBonusGlobal=false;save();}
     if(game){screen=game.finished?'final':'home';displayRound=game.currentRound;}
