@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=375, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#102438">
   <meta name="description" content="Prototype mobile de compteur de points pour Skull King, jouable sur un seul téléphone.">
   <title>À l'abordage ! — Compteur de points</title>
@@ -12,7 +12,7 @@
 *{box-sizing:border-box}
 html,body{height:100%;overflow:hidden}
 body{margin:0;background:#102737;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;color:var(--ink);font-size:14px;-webkit-tap-highlight-color:transparent}
-button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.35;cursor:default}button:focus-visible,input:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+button,input{font:inherit}button,input{touch-action:manipulation}button{cursor:pointer}button:disabled{opacity:.35;cursor:default}button:focus-visible,input:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 .shell{width:min(100%,520px);height:100dvh;max-height:100dvh;margin:auto;display:flex;flex-direction:column;background:var(--paper);overflow:hidden;box-shadow:0 0 45px #0003}
 .topbar{height:50px;flex-shrink:0;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 13px;gap:12px}
 .brand{display:flex;align-items:center;gap:8px;min-width:0}.brand-icon{width:28px;height:28px;display:grid;place-items:center;background:#314a55;border:1px solid #977d4d;border-radius:8px;color:#ffe1a0;font-size:17px}.brand-name{font-family:Georgia,serif;font-weight:800;letter-spacing:.2px;font-size:17px;line-height:1}.brand-sub{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#c2cbd0;margin-top:3px}.top-action{height:30px;border:1px solid #50616b;border-radius:7px;background:#233f4d;color:#f8e5bb;padding:0 9px;font-size:11px;font-weight:800;white-space:nowrap}
@@ -138,7 +138,7 @@ body{background:#50408d}
    La zone de commandes ne défile jamais ; les résultats occupent le reste. */
 :root{--navy:#123b43;--navy2:#174b50;--paper:#f7f0dd;--white:#fffaf0;--ink:#1b4048;--muted:#63777b;--gold:#ffbb68;--teal:#187f77;--line:#cddbd5;--red:#bd5550;--good:#106b61;--purple:#15555d;--purple-deep:#113b47;--sun:#ffb765}
 body{background:#0c3440;color:#183f45}
-.shell{width:375px;max-width:375px;background:#0e4550;color:#fff;box-shadow:0 12px 45px #071e2877}
+.shell{width:min(100%,375px);max-width:375px;background:#0e4550;color:#fff;box-shadow:0 12px 45px #071e2877}
 .topbar{height:52px;background:#103c48;border-bottom:1px solid #72b7a448;color:#fff;padding:0 16px;gap:10px}
 .brand-icon{background:#ef765b;color:#fff;border-color:#f9c797}
 .brand-name{font-family:system-ui,sans-serif;font-size:14px;font-weight:900;letter-spacing:.25px}
@@ -336,7 +336,7 @@ body{background:#0c3440;color:#183f45}
     }
 
     function setup(){
-      return `${topbar()}<main class="view"><div class="setup-head"><span class="eyebrow">Nouvelle partie</span><h1>Votre équipage</h1><p><span class="setup-count">Entre 2 et 10 joueurs</span> · <span class="setup-count">${draftNames.length}/10 joueurs ajoutés</span></p></div><div class="setup-scroll"><div>${draftNames.map((name,i)=>`<div class="field-row"><span class="field-index">${i+1}.</span><input class="field-input" data-name-index="${i}" aria-label="Prénom du joueur ${i+1}" placeholder="Nom du pirate" maxlength="26" value="${h(name)}"><button class="remove-btn" aria-label="Supprimer joueur ${i+1}" data-action="remove-player" data-index="${i}" ${draftNames.length<=2?'disabled':''}>×</button></div>`).join('')}</div><button class="btn btn-soft add-player" data-action="add-player" ${draftNames.length===10?'disabled':''}>+ Ajouter un joueur</button></div><footer class="footer-dock"><button class="btn btn-primary" data-action="start">Commencer la partie →</button></footer></main>`;
+      return `${topbar()}<main class="view"><div class="setup-scroll" aria-label="Ajouter les joueurs"><div>${draftNames.map((name,i)=>`<div class="field-row"><span class="field-index">${i+1}.</span><input class="field-input" data-name-index="${i}" aria-label="Prénom du joueur ${i+1}" placeholder="Nom du pirate" maxlength="26" value="${h(name)}"><button class="remove-btn" aria-label="Supprimer joueur ${i+1}" data-action="remove-player" data-index="${i}" ${draftNames.length<=2?'disabled':''}>×</button></div>`).join('')}</div><button class="btn btn-soft add-player" data-action="add-player" ${draftNames.length===10?'disabled':''}>+ Ajouter un joueur</button></div><footer class="footer-dock"><button class="btn btn-primary" data-action="start">Commencer la partie →</button></footer></main>`;
     }
 
     function stepper(actionMinus,actionPlus,value,options={}){
@@ -349,7 +349,7 @@ body{background:#0c3440;color:#183f45}
       return game.players.map(p=>{
         const bid=r.bids[p.id]||0,tricks=r.tricks[p.id]||0;
         const n=play?tricks:bid;
-        return `<div class="pirate-card"><div class="pirate-head"><div class="pirate-name">${h(p.name)}</div>${(r.bonuses[p.id]||0)?`<div class="bonus-badge ${r.bonuses[p.id]>0?'positive':'negative'}">${fmt(r.bonuses[p.id]||0)}</div>`:''}</div>
+        return `<div class="pirate-card" data-card-player="${h(p.id)}"><div class="pirate-head"><div class="pirate-name">${h(p.name)}</div>${(r.bonuses[p.id]||0)?`<div class="bonus-badge ${r.bonuses[p.id]>0?'positive':'negative'}">${fmt(r.bonuses[p.id]||0)}</div>`:''}</div>
           <div class="pirate-card-main"><div class="card-values"><div class="card-count"><span>${play?'Plis :':'Pari :'}</span> <strong>${n}</strong></div>${play?`<div class="bet-remember">Pari : <strong>${bid}</strong></div>`:''}</div>
           ${stepper(play?'trick-minus':'bid-minus',play?'trick-plus':'bid-plus',n,{pid:p.id,max:play?r.number:999,aria:(play?'Plis':'Pari')+' de '+p.name})}</div></div>`;
       }).join('');
@@ -422,27 +422,52 @@ body{background:#0c3440;color:#183f45}
       if(!scrollTop){const el=$app.querySelector('.player-scroll,.setup-scroll,.final-list');if(el)el.scrollTop=previousScroll;}
     }
 
-    // Counter changes must not redraw the full app or the score table.
-    function refreshCounterControls(action){
+    // Only mutate the changed value/buttons: keep other cards, scroll and modal DOM intact.
+    function setStepper(group,value,min,max){
+      if(!group)return;
+      const val=group.querySelector('.count-val');
+      if(val)val.textContent=String(value);
+      const minus=group.querySelector('[data-action$="-minus"]');
+      const plus=group.querySelector('[data-action$="-plus"]');
+      if(minus)minus.disabled=value<=min;
+      if(plus)plus.disabled=value>=max;
+    }
+    function refreshCounterControls(action,pid){
       const r=activeRound();
       if(!r)return;
       const play=r.phase!=='bids'&&!reviewingBids;
-      const isKraken=action.startsWith('kraken-');
+      const card=pid?[...$app.querySelectorAll('[data-card-player]')].find(el=>el.dataset.cardPlayer===pid):null;
       const isBonus=action.startsWith('bonus-');
       const isHarry=action.startsWith('harry-');
-      if(!isKraken&&!isBonus){
-        const cards=$app.querySelector('.pirate-cards');
-        if(cards)cards.innerHTML=playerCards(r,play);
+      if(action.startsWith('bid-')||action.startsWith('trick-')||isHarry){
+        const count=play?(r.tricks[pid]||0):(r.bids[pid]||0);
+        if(card){
+          const strong=card.querySelector('.card-count strong');
+          if(strong)strong.textContent=String(count);
+          const step=card.querySelector('.stepper-mini');
+          if(step)setStepper(step,count,0,play?r.number:999);
+          if(play){
+            const remembered=card.querySelector('.bet-remember strong');
+            if(remembered)remembered.textContent=String(r.bids[pid]||0);
+          }
+        }
       }
-      if(isBonus){
-        // Repaint the bonus chip on the affected player without moving the table.
-        const cards=$app.querySelector('.pirate-cards');
-        if(cards)cards.innerHTML=playerCards(r,play);
+      if(isBonus&&card){
+        const head=card.querySelector('.pirate-head');
+        if(head){
+          let chip=head.querySelector('.bonus-badge');
+          const value=r.bonuses[pid]||0;
+          if(!value){chip?.remove();}
+          else{
+            if(!chip){chip=document.createElement('div');head.appendChild(chip);}
+            chip.className='bonus-badge '+(value>0?'positive':'negative');
+            chip.textContent=fmt(value);
+          }
+        }
       }
-      if(isKraken){
-        const button=$app.querySelector('[data-action="kraken-plus"]');
-        const ctr=button?.closest('.stepper-mini');
-        if(ctr)ctr.outerHTML=stepper('kraken-minus','kraken-plus',r.kraken,{max:99,aria:'Kraken'});
+      if(action.startsWith('kraken-')){
+        const step=$app.querySelector('.kraken-small .stepper-mini');
+        setStepper(step,r.kraken,0,99);
       }
       if(action.startsWith('bid-')||isHarry){
         const label=$app.querySelector('[data-phase-label]');
@@ -451,7 +476,7 @@ body{background:#0c3440;color:#183f45}
           label.textContent=' — Paris '+total+' sur '+r.number;
         }
       }
-      if(play){
+      if(play&&(action.startsWith('trick-')||action.startsWith('kraken-'))){
         const validation=$app.querySelector('[data-action="complete-round"]');
         if(validation){
           const total=game.players.reduce((sum,p)=>sum+(r.tricks[p.id]||0),0)+r.kraken;
@@ -459,12 +484,25 @@ body{background:#0c3440;color:#183f45}
         }
       }
       if(modal&&(isBonus||isHarry)){
-        const old=$app.querySelector('.modal-backdrop');
-        if(old){
-          const scroll=old.querySelector('.sheet')?.scrollTop||0;
-          old.outerHTML=modalHTML();
-          const sheet=$app.querySelector('.modal-backdrop .sheet');
-          if(sheet)sheet.scrollTop=scroll;
+        const list=$app.querySelector('.people-modal');
+        const row=list?[...list.querySelectorAll('.people-modal-row')].find(el=>el.querySelector('[data-player="'+CSS.escape(pid)+'"]')):null;
+        if(row){
+          const value=isBonus?(r.bonuses[pid]||0):(r.bids[pid]||0);
+          const shown=row.querySelector('.people-modal-value');
+          if(shown)shown.textContent=isBonus?fmt(value):String(value);
+          if(isHarry){
+            const original=r.originalBids[pid]??r.bids[pid];
+            const minus=row.querySelector('[data-action="harry-minus"]');
+            const plus=row.querySelector('[data-action="harry-plus"]');
+            if(minus)minus.disabled=value<=Math.max(0,original-1);
+            if(plus)plus.disabled=value>=original+1;
+          }
+        }
+        if(modal.type==='harry'&&isHarry){
+          const current=$app.querySelector('.harry-summary div:nth-child(2) strong');
+          if(current)current.textContent=String(r.bids[pid]||0);
+          const original=r.originalBids[pid]??r.bids[pid];
+          setStepper($app.querySelector('.harry-control .stepper-mini'),r.bids[pid],Math.max(0,original-1),original+1);
         }
       }
     }
@@ -488,7 +526,7 @@ body{background:#0c3440;color:#183f45}
         r.bids[pid]=Math.max(Math.max(0,initial-1),Math.min(initial+1,r.bids[pid]+val));
         r.harryDelta[pid]=r.bids[pid]-initial;
       }
-      refreshCounterControls(action);
+      refreshCounterControls(action,pid);
       save();
     }
     $app.addEventListener('input',(e)=>{
