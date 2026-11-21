@@ -213,6 +213,12 @@ body{background:#0c3440;color:#183f45}
 @media(min-width:600px){body{background:#cbded7}.shell{height:min(860px,96dvh)}}
 
 
+/* Cadrage mobile cohérent des fenêtres, sans dépasser le plateau de 375 px. */
+.modal-backdrop{left:50%;right:auto;width:min(100vw,375px);transform:translateX(-50%)}
+.modal{width:100%;max-width:349px}
+.sheet{width:100%;max-width:375px}
+/* Le logo corail renvoie à l’accueil sur tous les écrans. */
+.brand-home{flex:0 0 28px;padding:0;cursor:pointer;appearance:none}
 /* Grille de saisie adaptée au nombre de joueurs :
    2–6 joueurs : 2 colonnes ; 7–10 joueurs : 3 colonnes. */
 .action-board[data-player-count="2"] .pirate-cards,
@@ -261,7 +267,6 @@ body{background:#0c3440;color:#183f45}
 .action-board[data-player-count="10"] .pirate-card .stepper-mini{
   flex-shrink:0;
 }
-
   </style>
 </head>
 <body>
@@ -322,7 +327,7 @@ body{background:#0c3440;color:#183f45}
       screen='game';displayRound=1;reviewingBids=false;save();render(true);
     }
     function topbar(action=''){
-      return `<header class="topbar"><div class="brand"><div class="brand-icon" aria-hidden="true">☠</div><div><div class="brand-name">Skull King</div><div class="brand-sub">À l'abordage !</div></div></div>${action}</header>`;
+      return `<header class="topbar"><div class="brand"><button type="button" class="brand-icon brand-home" data-action="home" aria-label="Retour à l’accueil" title="Accueil">☠</button><div><div class="brand-name">Skull King</div><div class="brand-sub">À l'abordage !</div></div></div>${action}</header>`;
     }
 
     function home(){
@@ -331,7 +336,7 @@ body{background:#0c3440;color:#183f45}
     }
 
     function setup(){
-      return `${topbar(`<button class="top-action" data-action="home">Accueil</button>`)}<main class="view"><div class="setup-head"><span class="eyebrow">Nouvelle partie</span><h1>Votre équipage</h1><p><span class="setup-count">Entre 2 et 10 joueurs</span> · <span class="setup-count">${draftNames.length}/10 joueurs ajoutés</span></p></div><div class="setup-scroll"><div>${draftNames.map((name,i)=>`<div class="field-row"><span class="field-index">${i+1}.</span><input class="field-input" data-name-index="${i}" aria-label="Prénom du joueur ${i+1}" placeholder="Nom du pirate" maxlength="26" value="${h(name)}"><button class="remove-btn" aria-label="Supprimer joueur ${i+1}" data-action="remove-player" data-index="${i}" ${draftNames.length<=2?'disabled':''}>×</button></div>`).join('')}</div><button class="btn btn-soft add-player" data-action="add-player" ${draftNames.length===10?'disabled':''}>+ Ajouter un joueur</button></div><footer class="footer-dock"><button class="btn btn-primary" data-action="start">Commencer la partie →</button></footer></main>`;
+      return `${topbar()}<main class="view"><div class="setup-head"><span class="eyebrow">Nouvelle partie</span><h1>Votre équipage</h1><p><span class="setup-count">Entre 2 et 10 joueurs</span> · <span class="setup-count">${draftNames.length}/10 joueurs ajoutés</span></p></div><div class="setup-scroll"><div>${draftNames.map((name,i)=>`<div class="field-row"><span class="field-index">${i+1}.</span><input class="field-input" data-name-index="${i}" aria-label="Prénom du joueur ${i+1}" placeholder="Nom du pirate" maxlength="26" value="${h(name)}"><button class="remove-btn" aria-label="Supprimer joueur ${i+1}" data-action="remove-player" data-index="${i}" ${draftNames.length<=2?'disabled':''}>×</button></div>`).join('')}</div><button class="btn btn-soft add-player" data-action="add-player" ${draftNames.length===10?'disabled':''}>+ Ajouter un joueur</button></div><footer class="footer-dock"><button class="btn btn-primary" data-action="start">Commencer la partie →</button></footer></main>`;
     }
 
     function stepper(actionMinus,actionPlus,value,options={}){
@@ -347,6 +352,7 @@ body{background:#0c3440;color:#183f45}
       const complete=game.rounds.filter(x=>x.phase==='complete');
       const totals=Object.fromEntries(game.players.map(p=>[p.id,complete.reduce((sum,x)=>sum+roundScore(x,p.id).total,0)]));
       const maxScore=Math.max(...Object.values(totals));
+      const rankedPlayers=[...game.players].sort((a,b)=>totals[b.id]-totals[a.id]||game.players.indexOf(a)-game.players.indexOf(b));
       const idx=game.rounds.findIndex(x=>x.number===r.number),prev=game.rounds[idx-1],next=game.rounds[idx+1];
       const totalBids=game.players.reduce((sum,p)=>sum+(r.bids[p.id]||0),0);
       const phaseLabel=`Paris ${totalBids} sur ${r.number}`;
@@ -358,10 +364,10 @@ body{background:#0c3440;color:#183f45}
         const n=play?tricks:bid;
         return `<div class="pirate-card"><div class="pirate-head"><div class="pirate-name">${h(p.name)}</div>${(r.bonuses[p.id]||0)?`<div class="bonus-badge ${r.bonuses[p.id]>0?'positive':'negative'}">${fmt(r.bonuses[p.id]||0)}</div>`:''}</div>
           <div class="pirate-card-main"><div class="card-values"><div class="card-count"><span>${play?'Plis :':'Pari :'}</span> <strong>${n}</strong></div>${play?`<div class="bet-remember">Pari : <strong>${bid}</strong></div>`:''}</div>
-          ${stepper(play?'trick-minus':'bid-minus',play?'trick-plus':'bid-plus',n,{pid:p.id,max:r.number,aria:(play?'Plis':'Pari')+' de '+p.name})}</div></div>`;
+          ${stepper(play?'trick-minus':'bid-minus',play?'trick-plus':'bid-plus',n,{pid:p.id,max:play?r.number:999,aria:(play?'Plis':'Pari')+' de '+p.name})}</div></div>`;
       }).join('');
       const rounds=game.rounds.filter(x=>x.number<=r.number);
-      const table=`<div class="scores-scroll"><table class="score-grid"><thead><tr><th class="round-col">Tour</th>${game.players.map(p=>`<th title="${h(p.name)}">${h(p.name)}</th>`).join('')}</tr><tr class="totals"><th>Total</th>${game.players.map(p=>`<th class="${totals[p.id]===maxScore?'leader':''}">${totals[p.id]}</th>`).join('')}</tr></thead><tbody>${rounds.map(x=>`<tr class="${x.number===r.number?'current-round':''}"><th>${x.number}</th>${game.players.map(p=>`<td>${x.phase==='complete'?roundScore(x,p.id).total:'-'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+      const table=`<div class="scores-scroll"><table class="score-grid"><thead><tr><th class="round-col">Tour</th>${rankedPlayers.map(p=>`<th title="${h(p.name)}">${h(p.name)}</th>`).join('')}</tr><tr class="totals"><th>Total</th>${rankedPlayers.map(p=>`<th class="${totals[p.id]===maxScore?'leader':''}">${totals[p.id]}</th>`).join('')}</tr></thead><tbody>${rounds.map(x=>`<tr class="${x.number===r.number?'current-round':''}"><th>${x.number}</th>${rankedPlayers.map(p=>`<td>${x.phase==='complete'?roundScore(x,p.id).total:'-'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
       return `${topbar(`<button class="top-action" data-action="open-finish">Terminer</button><button class="top-action settings-action" data-action="open-settings" aria-label="Paramètres des bonus" title="Paramètres">⚙</button>`)}
        <main class="view game-purple" style="--nplayers:${game.players.length}"><section class="action-board" data-player-count="${game.players.length}"><div class="turn-title"><button class="turn-nav" aria-label="Manche précédente" data-action="${leftAction}" data-round="${leftRound}" ${!canGoBack?'disabled':''}>‹</button><div><b>Tour ${r.number}</b><span> — ${phaseLabel}</span></div><button class="turn-nav" aria-label="Manche suivante" data-action="${reviewingBids?'back-to-play':'view-round'}" data-round="${next?.number||0}" ${!next&&!reviewingBids?'disabled':''}>›</button></div>
        <div class="pirate-cards">${cards}</div>
@@ -388,7 +394,7 @@ body{background:#0c3440;color:#183f45}
       }
       if(modal.type==='harry-list'){
         const r=activeRound();
-        return `<div class="modal-backdrop sheet-wrap"><section class="sheet" role="dialog" aria-modal="true" aria-label="Harry le Géant"><div class="sheet-head"><h2>Harry le Géant</h2><button class="close-x" data-action="close-modal" aria-label="Fermer">×</button></div><p>Ajuster le pari de chaque joueur de −1 ou +1 par rapport à son pari initial.</p><div class="people-modal">${game.players.map(p=>{const original=r.originalBids[p.id]??r.bids[p.id],current=r.bids[p.id];return `<div class="people-modal-row"><span class="people-modal-name">${h(p.name)} <small style="display:block;font-size:10px;color:#68767e;font-weight:500">Initial : ${original}</small></span><span class="people-modal-value">${current}</span><button class="count-btn" data-action="harry-minus" data-player="${h(p.id)}" ${current<=Math.max(0,original-1)?'disabled':''} aria-label="Harry : retirer un pli à ${h(p.name)}">−</button><button class="count-btn" data-action="harry-plus" data-player="${h(p.id)}" ${current>=Math.min(r.number,original+1)?'disabled':''} aria-label="Harry : ajouter un pli à ${h(p.name)}">+</button></div>`}).join('')}</div><div class="sheet-footer"><button class="btn btn-dark" data-action="close-modal">Valider</button></div></section></div>`;
+        return `<div class="modal-backdrop sheet-wrap"><section class="sheet" role="dialog" aria-modal="true" aria-label="Harry le Géant"><div class="sheet-head"><h2>Harry le Géant</h2><button class="close-x" data-action="close-modal" aria-label="Fermer">×</button></div><p>Ajuster le pari de chaque joueur de −1 ou +1 par rapport à son pari initial.</p><div class="people-modal">${game.players.map(p=>{const original=r.originalBids[p.id]??r.bids[p.id],current=r.bids[p.id];return `<div class="people-modal-row"><span class="people-modal-name">${h(p.name)} <small style="display:block;font-size:10px;color:#68767e;font-weight:500">Initial : ${original}</small></span><span class="people-modal-value">${current}</span><button class="count-btn" data-action="harry-minus" data-player="${h(p.id)}" ${current<=Math.max(0,original-1)?'disabled':''} aria-label="Harry : retirer un pli à ${h(p.name)}">−</button><button class="count-btn" data-action="harry-plus" data-player="${h(p.id)}" ${current>=original+1?'disabled':''} aria-label="Harry : ajouter un pli à ${h(p.name)}">+</button></div>`}).join('')}</div><div class="sheet-footer"><button class="btn btn-dark" data-action="close-modal">Valider</button></div></section></div>`;
       }
       if(modal.type==='rules')return `<div class="modal-backdrop sheet-wrap"><section class="sheet" role="dialog" aria-modal="true" aria-label="Rappel des bonus"><div class="sheet-head"><h2>📖 Rappel des règles</h2><button class="close-x" data-action="close-modal" aria-label="Fermer">×</button></div>${rulesHTML()}<div class="sheet-footer"><button class="btn btn-dark" data-action="close-modal">Fermer</button></div></section></div>`;
       if(modal.type==='finish'){
@@ -397,7 +403,7 @@ body{background:#0c3440;color:#183f45}
       }
       if(modal.type==='harry'){
         const r=activeRound(),p=game.players.find(x=>x.id===modal.pid),original=r.originalBids[p.id]??r.bids[p.id];
-        return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><h2>Harry le Géant</h2><p>Ajuster le pari enregistré de <b>${h(p.name)}</b> d'un pli maximum.</p><div class="harry-summary"><div><span>Pari initial</span><strong>${original}</strong></div><div><span>Pari actuel</span><strong>${r.bids[p.id]}</strong></div></div><div class="harry-control">${stepper('harry-minus','harry-plus',r.bids[p.id],{pid:p.id,min:Math.max(0,original-1),max:Math.min(r.number,original+1),aria:'Ajustement Harry'})}</div><div class="modal-buttons"><button class="btn btn-soft" data-action="harry-reset">Réinitialiser</button><button class="btn btn-dark" data-action="close-modal">Valider</button></div></div></div>`;
+        return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><h2>Harry le Géant</h2><p>Ajuster le pari enregistré de <b>${h(p.name)}</b> d'un pli maximum.</p><div class="harry-summary"><div><span>Pari initial</span><strong>${original}</strong></div><div><span>Pari actuel</span><strong>${r.bids[p.id]}</strong></div></div><div class="harry-control">${stepper('harry-minus','harry-plus',r.bids[p.id],{pid:p.id,min:Math.max(0,original-1),max:original+1,aria:'Ajustement Harry'})}</div><div class="modal-buttons"><button class="btn btn-soft" data-action="harry-reset">Réinitialiser</button><button class="btn btn-dark" data-action="close-modal">Valider</button></div></div></div>`;
       }
       if(modal.type==='replace')return `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true"><h2>Remplacer la partie ?</h2><p>La partie actuelle sera remplacée. Une seule partie est sauvegardée sur ce téléphone.</p><div class="modal-buttons"><button class="btn btn-soft" data-action="close-modal">Annuler</button><button class="btn btn-danger" data-action="confirm-replace">Remplacer</button></div></div></div>`;
       return'';
@@ -417,7 +423,7 @@ body{background:#0c3440;color:#183f45}
       const val=action.endsWith('plus')?1:-1;
       if(action.startsWith('bid-')){
         if(r.phase!=='bids'&&!reviewingBids)return;
-        r.bids[pid]=Math.max(0,Math.min(r.number,r.bids[pid]+val));
+        r.bids[pid]=Math.max(0,Math.min(999,r.bids[pid]+val));
       }else if(action.startsWith('trick-')){
         if(r.phase==='bids'||reviewingBids)return;
         r.tricks[pid]=Math.max(0,Math.min(r.number,r.tricks[pid]+val));
@@ -429,7 +435,7 @@ body{background:#0c3440;color:#183f45}
         r.kraken=Math.max(0,Math.min(99,r.kraken+val));
       }else if(action.startsWith('harry-')){
         const initial=r.originalBids[pid]??r.bids[pid];
-        r.bids[pid]=Math.max(Math.max(0,initial-1),Math.min(Math.min(r.number,initial+1),r.bids[pid]+val));
+        r.bids[pid]=Math.max(Math.max(0,initial-1),Math.min(initial+1,r.bids[pid]+val));
         r.harryDelta[pid]=r.bids[pid]-initial;
       }
       save();render();
@@ -451,7 +457,7 @@ body{background:#0c3440;color:#183f45}
       if(a==='home'){screen='home';modal=null;render(true);return;}
       if(a==='setup'){
         if(game&&!game.finished&&screen!=='setup') {modal={type:'replace',next:'setup'};render();return;}
-        draftNames=game?.finished?game.players.map(p=>p.name):['',''];screen='setup';modal=null;render(true);return;
+        draftNames=['',''];screen='setup';modal=null;render(true);return;
       }
 
       if(a==='resume'){screen='game';displayRound=game.currentRound;reviewingBids=false;render(true);return;}
@@ -467,7 +473,7 @@ body{background:#0c3440;color:#183f45}
         const r=activeRound();if((r.phase!=='bids'&&!reviewingBids)||r.number!==game.currentRound)return;
         r.phase='play';r.originalBids={...r.bids};
         for(const p of game.players)r.harryDelta[p.id]=0;
-        reviewingBids=false;save();render(true);toast('Paris enregistrés !');return;
+        reviewingBids=false;save();render(true);return;
       }
       if(a==='complete-round'){
         const r=activeRound();if(r.phase!=='play'||r.number!==game.currentRound||reviewingBids)return;
@@ -476,7 +482,7 @@ body{background:#0c3440;color:#183f45}
         r.phase='complete';
         if(r.number===TOTAL_ROUNDS){game.finished=true;screen='final';}
         else{game.currentRound=r.number+1;game.rounds.push(newRound(game.currentRound,game.players));displayRound=game.currentRound;}
-        reviewingBids=false;save();render(true);toast('Manche enregistrée');return;
+        reviewingBids=false;save();render(true);return;
       }
       if(a==='open-finish'){modal={type:'finish'};render();return;}
       if(a==='confirm-finish'){game.finished=true;screen='final';modal=null;save();render(true);return;}
